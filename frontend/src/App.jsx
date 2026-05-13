@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import Header from './components/Header.jsx';
-import HeroSection from './components/HeroSection.jsx';
-import QuizSection from './components/QuizSection.jsx';
+import Header from './components/common/Header.jsx';
+import HeroSection from './components/main/HeroSection.jsx';
+import QuizSection from './components/main/QuizSection.jsx';
 
 const TEXT = {
   all: '\uC804\uCCB4',
