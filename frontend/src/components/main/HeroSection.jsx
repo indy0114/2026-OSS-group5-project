@@ -1,4 +1,4 @@
-import logoUrl from '../assets/quizzly-logo-cropped.png';
+import logoUrl from "../../assets/quizzly-logo-cropped.png";
 
 const TEXT = {
   makeQuiz: '\uD034\uC988 \uB9CC\uB4E4\uAE30',

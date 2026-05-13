@@ -1,4 +1,4 @@
-import iconUrl from '../assets/quizzly-icon.png';
+import iconUrl from '../../assets/quizzly-icon.png';
 
 const TEXT = {
   home: 'Quizzly \uD648',
