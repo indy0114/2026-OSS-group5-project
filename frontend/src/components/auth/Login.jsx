@@ -1,34 +1,102 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import logoUrl from '../../assets/quizzly-logo-cropped.png';
 import './Auth.css';
 
-function Login() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+const TEXT = {
+  title: '로그인',
+  idLabel: '아이디',
+  idPlaceholder: '아이디를 입력하세요',
+  passwordLabel: '비밀번호',
+  passwordPlaceholder: '비밀번호를 입력하세요',
+  loginButton: '로그인',
+  cancelButton: '취소',
+  emptyError: '아이디와 비밀번호를 모두 입력해주세요.',
+};
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+function Login({ isOpen, onClose, onLoginSuccess }) {
+  const [id, setId] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleSubmit = () => {
+    if (!id.trim() || !password.trim()) {
+      setErrorMessage(TEXT.emptyError);
+      return;
+    }
+
+    setId('');
+    setPassword('');
+    setErrorMessage('');
+    onLoginSuccess();
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    navigate('/');
+  const handleClose = () => {
+    setId('');
+    setPassword('');
+    setErrorMessage('');
+    onClose();
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      handleSubmit();
+    }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <img className="auth-logo" src={logoUrl} alt="Quizzly" />
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <input className="auth-input" type="email" name="email" placeholder="이메일" value={form.email} onChange={handleChange} required />
-          <input className="auth-input" type="password" name="password" placeholder="비밀번호" value={form.password} onChange={handleChange} required />
-          <button className="auth-button" type="submit">로그인</button>
-        </form>
-        <p className="auth-switch">
-          아직 회원이 아니신가요?&nbsp;
-          <Link to="/signup">회원가입</Link>
-        </p>
+    <div className="auth-backdrop" onClick={handleClose}>
+      <div
+        className="auth-modal"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <h2 className="auth-title">{TEXT.title}</h2>
+
+        <div className="auth-field">
+          <label htmlFor="login-id">{TEXT.idLabel}</label>
+          <input
+            id="login-id"
+            type="text"
+            value={id}
+            onChange={(event) => setId(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={TEXT.idPlaceholder}
+            autoFocus
+          />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="login-password">{TEXT.passwordLabel}</label>
+          <input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={TEXT.passwordPlaceholder}
+          />
+        </div>
+
+        {errorMessage && (
+          <p className="auth-error">{errorMessage}</p>
+        )}
+
+        <div className="auth-buttons">
+          <button
+            type="button"
+            className="auth-button auth-button-cancel"
+            onClick={handleClose}
+          >
+            {TEXT.cancelButton}
+          </button>
+          <button
+            type="button"
+            className="auth-button auth-button-primary"
+            onClick={handleSubmit}
+          >
+            {TEXT.loginButton}
+          </button>
+        </div>
       </div>
     </div>
   );

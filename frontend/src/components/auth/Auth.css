@@ -1,5 +1,118 @@
 /*로그인*/
 
+
+.auth-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(6, 61, 103, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.auth-modal {
+  background-color: var(--white);
+  border-radius: 14px;
+  padding: 36px 32px 28px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow);
+}
+
+.auth-title {
+  margin: 0 0 24px;
+  color: var(--navy);
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.auth-field label {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.auth-field input {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 160ms ease;
+}
+
+.auth-field input::placeholder {
+  color: #a3adb7;
+  font-weight: 500;
+}
+
+.auth-field input:focus {
+  border-color: var(--navy);
+}
+
+.auth-error {
+  margin: 0 0 10px;
+  color: #d9534f;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.auth-button {
+  flex: 1;
+  min-height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.auth-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 16px rgba(4, 48, 82, 0.16);
+}
+
+.auth-button-cancel {
+  background: var(--muted);
+  color: var(--ink);
+}
+
+.auth-button-primary {
+  background: var(--navy);
+  color: var(--white);
+}
+
+
+/*회원가입*/
+
+
 /*회원가입*/
 .auth-page {
   display: flex;
@@ -57,7 +170,7 @@
   box-shadow: 0 0 0 2px var(--navy);
 }
 
-.auth-button {
+.auth-button-signup {
   width: 100%;
   height: 46px;
   margin-top: 6px;
@@ -71,7 +184,7 @@
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.auth-button:hover {
+.auth-button-signup:hover {
   transform: translateY(-1px);
   box-shadow: 0 7px 16px rgba(4, 48, 82, 0.2);
 }
@@ -83,12 +196,16 @@
   font-weight: 600;
 }
 
-.auth-switch a {
+.auth-switch-btn {
+  background: none;
+  border: none;
   color: var(--navy);
   font-weight: 800;
-  text-decoration: none;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
 }
 
-.auth-switch a:hover {
+.auth-switch-btn:hover {
   text-decoration: underline;
 }

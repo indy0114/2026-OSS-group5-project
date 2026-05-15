@@ -2,15 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import iconUrl from '../../assets/quizzly-icon.png';
 
 const TEXT = {
-  home: 'Quizzly 홈',
-  logout: '로그아웃',
-  myPage: '마이페이지',
-  login: '로그인',
-  signup: '회원가입',
-  userMenu: '사용자 메뉴',
+  home: 'Quizzly 홈', logout: '로그아웃', myPage: '마이페이지',
+  login: '로그인', signup: '회원가입', userMenu: '사용자 메뉴',
 };
 
-function Header({ isLoggedIn, onLogout }) {
+function Header({ isLoggedIn, onLogin, onLogout }) {
   const navigate = useNavigate();
 
   return (
@@ -26,7 +22,7 @@ function Header({ isLoggedIn, onLogout }) {
           </>
         ) : (
           <>
-            <button className="pill-button compact" type="button" onClick={() => navigate('/login')}>{TEXT.login}</button>
+            <button className="pill-button compact" type="button" onClick={onLogin}>{TEXT.login}</button>
             <button className="pill-button compact" type="button" onClick={() => navigate('/signup')}>{TEXT.signup}</button>
           </>
         )}

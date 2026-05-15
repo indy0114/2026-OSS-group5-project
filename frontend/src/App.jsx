@@ -3,8 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import Header from './components/common/Header.jsx';
 import HeroSection from './components/main/HeroSection.jsx';
 import QuizSection from './components/main/QuizSection.jsx';
-import Signup from './components/auth/Signup.jsx';
 import Login from './components/auth/Login.jsx';
+import Signup from './components/auth/Signup.jsx';
 
 const TEXT = {
   all: '전체', quizTitle: '퀴즈 제목', multipleChoice: '객관식', shortAnswer: '주관식',
@@ -69,21 +69,28 @@ function MainPage() {
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
     <div className="app">
       <Header
         isLoggedIn={isLoggedIn}
-        onLogin={() => setIsLoggedIn(true)}
+        onLogin={() => setIsLoginOpen(true)}
         onLogout={() => setIsLoggedIn(false)}
       />
       <Routes>
         <Route path="/" element={<MainPage />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup onLoginOpen={() => setIsLoginOpen(true)} />} />
       </Routes>
+      <Login
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onLoginSuccess={() => {
+          setIsLoggedIn(true);
+          setIsLoginOpen(false);
+        }}
+      />
     </div>
   );
 }
-
 export default App;
