@@ -6,7 +6,7 @@ const TEXT = {
   goToList: '\uD034\uC988 \uBAA9\uB85D\uC73C\uB85C \uC774\uB3D9',
 };
 
-function HeroSection() {
+function HeroSection({ onCreateQuiz }) {
   return (
     <section className="hero" aria-labelledby="home-title">
       <h1 id="home-title" className="sr-only">
@@ -16,7 +16,7 @@ function HeroSection() {
       <img className="hero-logo" src={logoUrl} alt="Quizzly" />
 
       <div className="hero-actions">
-        <button className="primary-action" type="button">
+        <button className="primary-action" type="button" onClick={onCreateQuiz}>
           {TEXT.makeQuiz}
         </button>
         <button className="secondary-action" type="button">

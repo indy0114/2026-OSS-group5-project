@@ -1,5 +1,5 @@
 :root {
-  --navy: #063d67;
+  --navy: #002d56;
   --ink: #17365c;
   --brown: #967355;
   --panel: #547692;
@@ -29,7 +29,9 @@ body {
 }
 
 button,
-input {
+input,
+textarea,
+select {
   font: inherit;
 }
 

@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import Header from './components/common/Header.jsx';
 import HeroSection from './components/main/HeroSection.jsx';
 import QuizSection from './components/main/QuizSection.jsx';
+import Login from './components/auth/Login.jsx';
+import CreateQuizPage from './components/create/CreateQuizPage.jsx';
 
 const TEXT = {
   all: '\uC804\uCCB4',
@@ -83,6 +85,8 @@ const quizFeed = Array.from({ length: 30 }, (_, index) => {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeCategory, setActiveCategory] = useState(TEXT.all);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [activeView, setActiveView] = useState('home');
   const [query, setQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('latest');
 
@@ -107,25 +111,40 @@ function App() {
     });
   }, [activeCategory, query, sortOrder]);
 
-  return (
+return (
     <div className="app">
-      <Header
-        isLoggedIn={isLoggedIn}
-        onLogin={() => setIsLoggedIn(true)}
-        onLogout={() => setIsLoggedIn(false)}
+      {activeView === 'create' ? (
+        <CreateQuizPage onCancel={() => setActiveView('home')} />
+      ) : (
+        <>
+          <Header
+            isLoggedIn={isLoggedIn}
+            onLogin={() => setIsLoginOpen(true)}
+            onLogout={() => setIsLoggedIn(false)}
+          />
+          <main>
+            <HeroSection onCreateQuiz={() => setActiveView('create')} />
+            <QuizSection
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+              query={query}
+              onQueryChange={setQuery}
+              sortOrder={sortOrder}
+              onSortOrderChange={setSortOrder}
+              quizzes={filteredQuizzes}
+            />
+          </main>
+        </>
+      )}
+
+      <Login
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onLoginSuccess={() => {
+          setIsLoggedIn(true);
+          setIsLoginOpen(false);
+        }}
       />
-      <main>
-        <HeroSection />
-        <QuizSection
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-          query={query}
-          onQueryChange={setQuery}
-          sortOrder={sortOrder}
-          onSortOrderChange={setSortOrder}
-          quizzes={filteredQuizzes}
-        />
-      </main>
     </div>
   );
 }
