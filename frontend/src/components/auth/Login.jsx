@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 
 const TEXT = {
@@ -12,12 +13,11 @@ const TEXT = {
   emptyError: '아이디와 비밀번호를 모두 입력해주세요.',
 };
 
-function Login({ isOpen, onClose, onLoginSuccess }) {
+function Login({ onLoginSuccess }) {
+  const navigate = useNavigate();
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-
-  if (!isOpen) return null;
 
   const handleSubmit = () => {
     if (!id.trim() || !password.trim()) {
@@ -31,13 +31,6 @@ function Login({ isOpen, onClose, onLoginSuccess }) {
     onLoginSuccess();
   };
 
-  const handleClose = () => {
-    setId('');
-    setPassword('');
-    setErrorMessage('');
-    onClose();
-  };
-
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       handleSubmit();
@@ -45,11 +38,8 @@ function Login({ isOpen, onClose, onLoginSuccess }) {
   };
 
   return (
-    <div className="auth-backdrop" onClick={handleClose}>
-      <div
-        className="auth-modal"
-        onClick={(event) => event.stopPropagation()}
-      >
+    <div className="auth-page">
+      <div className="auth-modal">
         <h2 className="auth-title">{TEXT.title}</h2>
 
         <div className="auth-field">
@@ -85,7 +75,7 @@ function Login({ isOpen, onClose, onLoginSuccess }) {
           <button
             type="button"
             className="auth-button auth-button-cancel"
-            onClick={handleClose}
+            onClick={() => navigate(-1)}
           >
             {TEXT.cancelButton}
           </button>
