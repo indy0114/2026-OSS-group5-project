@@ -14,6 +14,7 @@
   background: var(--white);
 }
 
+/* 기본 리셋 & 전역 스타일 */
 * {
   box-sizing: border-box;
 }
@@ -39,11 +40,23 @@ button {
   cursor: pointer;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .app {
   min-height: 100vh;
   background: var(--white);
 }
 
+/* 헤더(Header) */
 .site-header {
   position: sticky;
   top: 0;
@@ -102,15 +115,12 @@ button {
   font-size: 14px;
 }
 
-.pill-button:hover,
-.primary-action:hover,
-.secondary-action:hover,
-.category-chip:hover,
-.sort-button:hover {
+.pill-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 7px 16px rgba(4, 48, 82, 0.16);
 }
 
+/* 히어로 섹션 (Hero Section) */
 .hero {
   display: flex;
   min-height: calc(100vh - 58px);
@@ -149,6 +159,14 @@ button {
     background 160ms ease;
 }
 
+.primary-action:hover,
+.secondary-action:hover,
+.category-chip:hover,
+.sort-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 16px rgba(4, 48, 82, 0.16);
+}
+
 .primary-action {
   border: 3px solid var(--navy);
   background: var(--navy);
@@ -178,6 +196,7 @@ button {
   transform: rotate(45deg) translate(-3px, -3px);
 }
 
+/* 퀴즈 섹션 (Quiz Section) */
 .quiz-section {
   min-height: 100vh;
   padding: 28px clamp(20px, 6vw, 72px) 64px;
@@ -346,23 +365,15 @@ button {
   line-height: 1.35;
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
+/* 반응형 */
 @media (max-width: 760px) {
+  /* 헤더 */
   .site-header {
     height: 52px;
     padding-right: 10px;
   }
 
+  /* 히어로 */
   .hero {
     min-height: calc(100vh - 52px);
     padding-top: 52px;
@@ -382,6 +393,7 @@ button {
     font-size: 18px;
   }
 
+  /* 퀴즈 섹션 */
   .quiz-section {
     padding-inline: 18px;
   }
@@ -407,6 +419,7 @@ button {
 }
 
 @media (max-width: 430px) {
+  /* 헤더 */
   .header-actions {
     gap: 5px;
   }
@@ -417,6 +430,7 @@ button {
     font-size: 11px;
   }
 
+  /* 히어로 */
   .hero-logo {
     width: min(360px, 90vw);
   }
@@ -431,6 +445,7 @@ button {
     font-size: 14px;
   }
 
+  /* 퀴즈 그리드 */
   .quiz-grid {
     grid-template-columns: 1fr;
   }

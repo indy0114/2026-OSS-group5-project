@@ -1,4 +1,4 @@
-function QuizCard({ quiz }) {
+/*function QuizCard({ quiz }) {
   return (
     <article className="quiz-card">
       <div className="thumbnail" aria-hidden="true" />
