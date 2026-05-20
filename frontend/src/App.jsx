@@ -43,7 +43,18 @@ function App() {
             </>
           }
         />
-        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/signup"
+          element={
+           <>
+             <Header
+               isLoggedIn={isLoggedIn}
+               onLogout={() => { setIsLoggedIn(false); navigate('/'); }}
+             />
+             <Signup />
+           </>
+          }
+        />
         <Route
           path="/mypage"
           element={
