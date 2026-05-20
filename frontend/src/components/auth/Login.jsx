@@ -1,92 +1,76 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import logoUrl from '../../assets/quizzly-logo-cropped.png';
 import './Auth.css';
 
 const TEXT = {
-  title: '로그인',
-  idLabel: '아이디',
-  idPlaceholder: '아이디를 입력하세요',
-  passwordLabel: '비밀번호',
-  passwordPlaceholder: '비밀번호를 입력하세요',
+  idPlaceholder: '이메일',
+  passwordPlaceholder: '비밀번호',
   loginButton: '로그인',
-  cancelButton: '취소',
+  signupLink: '계정이 없으신가요?',
+  signupLinkBold: '회원가입',
   emptyError: '아이디와 비밀번호를 모두 입력해주세요.',
 };
 
 function Login({ onLoginSuccess }) {
   const navigate = useNavigate();
-  const [id, setId] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ id: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
 
+  const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+
   const handleSubmit = () => {
-    if (!id.trim() || !password.trim()) {
+    if (!form.id.trim() || !form.password.trim()) {
       setErrorMessage(TEXT.emptyError);
       return;
     }
 
-    setId('');
-    setPassword('');
     setErrorMessage('');
-    onLoginSuccess();
+
+    if (typeof onLoginSuccess === 'function') {
+      onLoginSuccess();
+      return;
+    }
+
+    navigate('/');
   };
 
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      handleSubmit();
-    }
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSubmit();
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-modal">
-        <h2 className="auth-title">{TEXT.title}</h2>
+    <div className="signup-page">
+      <div className="signup-modal">
+        <img className="signup-logo" src={logoUrl} alt="Quizzly" />
 
-        <div className="auth-field">
-          <label htmlFor="login-id">{TEXT.idLabel}</label>
-          <input
-            id="login-id"
-            type="text"
-            value={id}
-            onChange={(event) => setId(event.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={TEXT.idPlaceholder}
-            autoFocus
-          />
+        <div className="signup-fields">
+          {[
+            { field: 'id', placeholder: TEXT.idPlaceholder, type: 'text' },
+            { field: 'password', placeholder: TEXT.passwordPlaceholder, type: 'password' },
+          ].map(({ field, placeholder, type }) => (
+            <input
+              key={field}
+              type={type}
+              value={form[field]}
+              onChange={handleChange(field)}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              autoFocus={field === 'id'}
+            />
+          ))}
         </div>
 
-        <div className="auth-field">
-          <label htmlFor="login-password">{TEXT.passwordLabel}</label>
-          <input
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={TEXT.passwordPlaceholder}
-          />
-        </div>
+        {errorMessage && <p className="signup-error">{errorMessage}</p>}
 
-        {errorMessage && (
-          <p className="auth-error">{errorMessage}</p>
-        )}
+        <button type="button" className="signup-button" onClick={handleSubmit}>
+          {TEXT.loginButton}
+        </button>
 
-        <div className="auth-buttons">
-          <button
-            type="button"
-            className="auth-button auth-button-cancel"
-            onClick={() => navigate(-1)}
-          >
-            {TEXT.cancelButton}
-          </button>
-          <button
-            type="button"
-            className="auth-button auth-button-primary"
-            onClick={handleSubmit}
-          >
-            {TEXT.loginButton}
-          </button>
-        </div>
+        <p className="signup-footer">
+          {TEXT.signupLink}{' '}
+          <Link to="/signup">{TEXT.signupLinkBold}</Link>
+        </p>
       </div>
     </div>
   );
