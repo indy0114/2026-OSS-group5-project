@@ -11,43 +11,115 @@ const TEXT = {
   search: '퀴즈 검색',
   placeholder: '검색어를 입력하세요.',
   sortLabel: '정렬',
-  sort: '정렬',
   latest: '최신순',
   name: '이름순',
   category: '카테고리',
-  commonSense: '상식',
-  photo: '사진',
-  movie: '영화',
   music: '음악',
+  commonSense: '상식',
+  movie: '영화',
+  game: '게임',
+  food: '음식',
   sports: '스포츠',
-  quizTitle: '퀴즈 제목',
+  person: '인물',
+  anime: '애니',
+  etc: '기타',
   multipleChoice: '객관식',
   shortAnswer: '주관식',
   ox: 'O/X',
   mixed: '혼합형',
-  simpleQuiz: '카테고리에 어울리는 가벼운 퀴즈',
-  commonSenseCheck: '상식 체크',
-  commonSenseDescription: '기본 상식을 빠르게 확인해요',
-  movieQuiz: '영화 장면 맞히기',
-  movieDescription: '인기 영화 속 장면 퀴즈',
-  musicQuiz: '음악 퀴즈',
-  musicDescription: '가사와 멜로디 힌트를 보고 맞혀요',
-  sportsRecord: '스포츠 기록',
-  sportsDescription: '기억에 남는 스포츠 순간들',
 };
 
-const categories = [TEXT.all, TEXT.commonSense, TEXT.photo, TEXT.movie, TEXT.music, TEXT.sports];
-
-const quizzes = [
-  { id: 1, title: TEXT.quizTitle, type: TEXT.multipleChoice, category: TEXT.photo, description: TEXT.simpleQuiz, createdAt: '2026-05-05' },
-  { id: 2, title: TEXT.commonSenseCheck, type: TEXT.shortAnswer, category: TEXT.commonSense, description: TEXT.commonSenseDescription, createdAt: '2026-05-04' },
-  { id: 3, title: TEXT.movieQuiz, type: TEXT.ox, category: TEXT.movie, description: TEXT.movieDescription, createdAt: '2026-05-03' },
-  { id: 4, title: TEXT.musicQuiz, type: TEXT.multipleChoice, category: TEXT.music, description: TEXT.musicDescription, createdAt: '2026-05-02' },
-  { id: 5, title: TEXT.sportsRecord, type: TEXT.mixed, category: TEXT.sports, description: TEXT.sportsDescription, createdAt: '2026-05-01' },
+const categories = [
+  TEXT.all,
+  TEXT.music,
+  TEXT.commonSense,
+  TEXT.movie,
+  TEXT.game,
+  TEXT.food,
+  TEXT.sports,
+  TEXT.person,
+  TEXT.anime,
+  TEXT.etc,
 ];
 
-const quizFeed = Array.from({ length: 30 }, (_, index) => {
+const quizzes = [
+  {
+    id: 1,
+    title: '\uC74C\uC545 \uD034\uC988',
+    type: TEXT.multipleChoice,
+    category: TEXT.music,
+    description: '\uC778\uAE30 \uC74C\uC545\uACFC \uAC00\uC218\uB97C \uB9DE\uD600\uBCF4\uC138\uC694.',
+    createdAt: '2026-05-05',
+  },
+  {
+    id: 2,
+    title: '\uC0C1\uC2DD \uCCB4\uD06C',
+    type: TEXT.shortAnswer,
+    category: TEXT.commonSense,
+    description: '\uAE30\uBCF8 \uC0C1\uC2DD\uC744 \uBE60\uB974\uAC8C \uD655\uC778\uD574\uC694.',
+    createdAt: '2026-05-04',
+  },
+  {
+    id: 3,
+    title: '\uC601\uD654 \uC7A5\uBA74 \uB9DE\uD788\uAE30',
+    type: TEXT.ox,
+    category: TEXT.movie,
+    description: '\uC778\uAE30 \uC601\uD654 \uC18D \uC7A5\uBA74 \uD034\uC988',
+    createdAt: '2026-05-03',
+  },
+  {
+    id: 4,
+    title: '\uAC8C\uC784 \uCE90\uB9AD\uD130',
+    type: TEXT.multipleChoice,
+    category: TEXT.game,
+    description: '\uAC8C\uC784 \uC18D \uCE90\uB9AD\uD130\uB97C \uB9DE\uD600\uBCF4\uC138\uC694.',
+    createdAt: '2026-05-02',
+  },
+  {
+    id: 5,
+    title: '\uC74C\uC2DD \uC0C1\uC2DD',
+    type: TEXT.mixed,
+    category: TEXT.food,
+    description: '\uC5EC\uB7EC \uAC00\uC9C0 \uC74C\uC2DD\uC5D0 \uAD00\uD55C \uD034\uC988',
+    createdAt: '2026-05-01',
+  },
+  {
+    id: 6,
+    title: '\uC2A4\uD3EC\uCE20 \uAE30\uB85D',
+    type: TEXT.shortAnswer,
+    category: TEXT.sports,
+    description: '\uAE30\uC5B5\uC5D0 \uB0A8\uB294 \uC2A4\uD3EC\uCE20 \uC21C\uAC04\uB4E4',
+    createdAt: '2026-04-30',
+  },
+  {
+    id: 7,
+    title: '\uC778\uBB3C \uD034\uC988',
+    type: TEXT.multipleChoice,
+    category: TEXT.person,
+    description: '\uC720\uBA85 \uC778\uBB3C\uC744 \uD78C\uD2B8\uB85C \uB9DE\uD600\uBCF4\uC138\uC694.',
+    createdAt: '2026-04-29',
+  },
+  {
+    id: 8,
+    title: '\uC560\uB2C8 \uC791\uD488 \uD034\uC988',
+    type: TEXT.ox,
+    category: TEXT.anime,
+    description: '\uC560\uB2C8\uBA54\uC774\uC158 \uC791\uD488\uACFC \uCE90\uB9AD\uD130 \uD034\uC988',
+    createdAt: '2026-04-28',
+  },
+  {
+    id: 9,
+    title: '\uAE30\uD0C0 \uC7A1\uD559',
+    type: TEXT.mixed,
+    category: TEXT.etc,
+    description: '\uC5EC\uB7EC \uC8FC\uC81C\uAC00 \uC11E\uC778 \uC7A1\uD559 \uD034\uC988',
+    createdAt: '2026-04-27',
+  },
+];
+
+const quizFeed = Array.from({ length: 36 }, (_, index) => {
   const quiz = quizzes[index % quizzes.length];
+
   return {
     ...quiz,
     id: index + 1,
@@ -56,11 +128,12 @@ const quizFeed = Array.from({ length: 30 }, (_, index) => {
   };
 });
 
-//HeroSection
 function HeroSection({ onCreateQuiz }) {
   return (
     <section className="hero" aria-labelledby="home-title">
-      <h1 id="home-title" className="sr-only">Quizzly</h1>
+      <h1 id="home-title" className="sr-only">
+        Quizzly
+      </h1>
       <img className="hero-logo" src={logoUrl} alt="Quizzly" />
       <div className="hero-actions">
         <button className="primary-action" type="button" onClick={onCreateQuiz}>
@@ -77,7 +150,6 @@ function HeroSection({ onCreateQuiz }) {
   );
 }
 
-//QuizCard
 function QuizCard({ quiz }) {
   return (
     <article className="quiz-card">
@@ -94,7 +166,6 @@ function QuizCard({ quiz }) {
   );
 }
 
-//QuizSection
 function QuizSection({ activeCategory, onCategoryChange, query, onQueryChange, sortOrder, onSortOrderChange, quizzes }) {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const currentSortText = sortOrder === 'name' ? TEXT.name : TEXT.latest;
@@ -186,6 +257,7 @@ function MainPage({ onCreateQuiz }) {
         !keyword ||
         quiz.title.toLowerCase().includes(keyword) ||
         quiz.category.toLowerCase().includes(keyword);
+
       return matchesCategory && matchesQuery;
     });
 
