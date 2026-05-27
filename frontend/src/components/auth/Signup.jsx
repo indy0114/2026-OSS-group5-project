@@ -1,51 +1,32 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signup } from '../../api/auth.js';
 import logoUrl from '../../assets/quizzly-logo-cropped.png';
-import './Auth.css';
+import "./Auth.css";
 
 const TEXT = {
-  idPlaceholder: '\uC544\uC774\uB514',
-  emailPlaceholder: '\uC774\uBA54\uC77C',
-  passwordPlaceholder: '\uBE44\uBC00\uBC88\uD638',
-  signupButton: '\uD68C\uC6D0\uAC00\uC785',
-  loginLink: '\uC774\uBBF8 \uACC4\uC815\uC774 \uC788\uC73C\uC2E0\uAC00\uC694?',
-  loginLinkBold: '\uB85C\uADF8\uC778',
-  emptyError: '\uBAA8\uB4E0 \uD56D\uBAA9\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
-  passwordLengthError: '\uBE44\uBC00\uBC88\uD638\uB294 6\uC790 \uC774\uC0C1\uC73C\uB85C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+  idPlaceholder: '아이디',
+  emailPlaceholder: '이메일',
+  passwordPlaceholder: '비밀번호',
+  signupButton: '회원가입',
+  loginLink: '이미 계정이 있으신가요?',
+  loginLinkBold: '로그인',
+  emptyError: '모든 항목을 입력해주세요.',
 };
 
-function Signup({ onSignupSuccess }) {
+function Signup() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ id: '', email: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!form.id.trim() || !form.email.trim() || !form.password.trim()) {
       setErrorMessage(TEXT.emptyError);
       return;
     }
-
-    if (form.password.length < 6) {
-      setErrorMessage(TEXT.passwordLengthError);
-      return;
-    }
-
-    setIsSubmitting(true);
     setErrorMessage('');
-
-    try {
-      const user = await signup(form);
-      onSignupSuccess?.(user);
-      navigate('/');
-    } catch (error) {
-      setErrorMessage(error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    navigate('/');
   };
 
   const handleKeyDown = (e) => {
@@ -77,12 +58,13 @@ function Signup({ onSignupSuccess }) {
 
         {errorMessage && <p className="signup-error">{errorMessage}</p>}
 
-        <button type="button" className="signup-button" onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? '...' : TEXT.signupButton}
+        <button type="button" className="signup-button" onClick={handleSubmit}>
+          {TEXT.signupButton}
         </button>
 
         <p className="signup-footer">
-          {TEXT.loginLink} <Link to="/login">{TEXT.loginLinkBold}</Link>
+          {TEXT.loginLink}{' '}
+          <Link to="/login">{TEXT.loginLinkBold}</Link>
         </p>
       </div>
     </div>
