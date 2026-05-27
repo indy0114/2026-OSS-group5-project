@@ -7,6 +7,7 @@ import Login from './components/auth/Login.jsx';
 import Signup from './components/auth/Signup.jsx';
 import MyPage from './components/auth/MyPage.jsx';
 import CreateQuizPage from './components/create/CreateQuizPage.jsx';
+import AddQuizPage from './components/create/AddQuizPage.jsx';
 import { clearToken, getMe, getToken, logout } from './api/auth.js';
 
 function App() {
@@ -73,6 +74,22 @@ function App() {
           element={
             isLoggedIn ? (
               <CreateQuizPage onCancel={() => navigate('/')} />
+            ) : (
+              <>
+                <Header
+                  isLoggedIn={isLoggedIn}
+                  onLogout={handleLogout}
+                />
+                <Login onLoginSuccess={handleAuthSuccess} />
+              </>
+            )
+          }
+        />
+        <Route
+          path="/add"
+          element={
+            isLoggedIn ? (
+              <AddQuizPage />
             ) : (
               <>
                 <Header
