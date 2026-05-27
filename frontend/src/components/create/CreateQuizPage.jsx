@@ -23,11 +23,15 @@ const TEXT = {
   titlePlaceholder: '\uC81C\uBAA9\uC744 \uC785\uB825\uD558\uC138\uC694. (\uCD5C\uB300 50\uC790)',
   descriptionPlaceholder: '\uC124\uBA85\uC744 \uC785\uB825\uD558\uC138\uC694. (\uCD5C\uB300 100\uC790)',
   categoryPlaceholder: '\uCE74\uD14C\uACE0\uB9AC\uB97C \uC120\uD0DD\uD558\uC138\uC694.',
-  commonSense: '\uC0C1\uC2DD',
-  photo: '\uC0AC\uC9C4',
-  movie: '\uC601\uD654',
   music: '\uC74C\uC545',
+  commonSense: '\uC0C1\uC2DD',
+  movie: '\uC601\uD654',
+  game: '\uAC8C\uC784',
+  food: '\uC74C\uC2DD',
   sports: '\uC2A4\uD3EC\uCE20',
+  person: '\uC778\uBB3C',
+  anime: '\uC560\uB2C8',
+  etc: '\uAE30\uD0C0',
 };
 
 const quizTypes = [
@@ -39,11 +43,15 @@ const quizTypes = [
 const answerTypes = [TEXT.shortAnswer, TEXT.choiceAnswer];
 const categories = [
   TEXT.categoryPlaceholder,
-  TEXT.commonSense,
-  TEXT.photo,
-  TEXT.movie,
   TEXT.music,
+  TEXT.commonSense,
+  TEXT.movie,
+  TEXT.game,
+  TEXT.food,
   TEXT.sports,
+  TEXT.person,
+  TEXT.anime,
+  TEXT.etc,
 ];
 
 function CreateHeader({ onCancel, onSave }) {
