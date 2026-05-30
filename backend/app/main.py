@@ -52,6 +52,10 @@ class AuthResponse(BaseModel):
     token_type: str = "bearer"
     user: UserResponse
 
+class UpdateMeRequest(BaseModel):
+    username: str | None = Field(default=None, min_length=2, max_length=30)
+    email: EmailStr | None = None
+    password: str | None = Field(default=None, min_length=6, max_length=128)
 
 def get_connection():
     INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
@@ -80,6 +84,20 @@ def init_db():
                 user_id INTEGER NOT NULL,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
+        
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS quizzes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            tags TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
             """
         )
@@ -233,6 +251,79 @@ def logout(authorization: str | None = Header(default=None)):
             connection.execute("DELETE FROM sessions WHERE token = ?", (token,))
 
     return {"message": "로그아웃되었습니다."}
+
+
+
+@app.get("/api/users/me/quizzes")
+def get_my_quizzes(user=Depends(get_current_user)): 
+    with get_connection() as connection:
+        rows = connection.execute(
+            """
+            SELECT id, title, description, tags, created_at 
+            FROM quizzes 
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+            """,
+            (user["id"],),
+        ).fetchall()
+        
+        quizzes = []
+        for row in rows:
+            quizzes.append({
+                "id": row["id"],
+                "title": row["title"],
+                "description": row["description"],
+                "tags": row["tags"].split(",") if row["tags"] else [],
+                "created_at": row["created_at"]
+            })
+    return quizzes
+
+
+@app.delete("/api/quizzes/{quiz_id}")
+def delete_quiz(quiz_id: int, user=Depends(get_current_user)):
+    with get_connection() as connection:
+        quiz = connection.execute(
+            "SELECT id FROM quizzes WHERE id = ? AND user_id = ?", 
+            (quiz_id, user["id"])
+        ).fetchone()
+        
+        if not quiz:
+            raise HTTPException(status_code=404, detail="퀴즈를 찾을 수 없거나 삭제 권한이 없습니다.")
+            
+        connection.execute("DELETE FROM quizzes WHERE id = ?", (quiz_id,))
+    return {"message": "퀴즈가 성공적으로 삭제되었습니다."}
+
+@app.patch("/api/users/me", response_model=UserResponse)
+def update_me(payload: UpdateMeRequest, user=Depends(get_current_user)):
+    updates = {}
+    if payload.username is not None:
+        updates["username"] = payload.username.strip()
+    if payload.email is not None:
+        updates["email"] = payload.email.lower().strip()
+    if payload.password is not None:
+        updates["password_hash"] = hash_password(payload.password)
+
+    if not updates:
+        raise HTTPException(status_code=400, detail="변경할 내용이 없습니다.")
+
+    with get_connection() as connection:
+        if "username" in updates or "email" in updates:
+            new_username = updates.get("username", user["username"])
+            new_email = updates.get("email", user["email"])
+            existing = connection.execute(
+                "SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?",
+                (new_username, new_email, user["id"]),
+            ).fetchone()
+            if existing is not None:
+                raise HTTPException(status_code=409, detail="이미 사용 중인 아이디 또는 이메일입니다.")
+
+        columns = ", ".join(f"{key} = ?" for key in updates)
+        values = list(updates.values()) + [user["id"]]
+        connection.execute(f"UPDATE users SET {columns} WHERE id = ?", values)
+
+        updated = connection.execute("SELECT * FROM users WHERE id = ?", (user["id"],)).fetchone()
+
+    return row_to_user(updated)
 
 
 @app.delete("/api/users/me")

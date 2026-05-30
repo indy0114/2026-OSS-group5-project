@@ -101,3 +101,23 @@ export async function deleteAccount() {
 }
 
 export { clearToken, getToken };
+
+export async function getMyQuizzes() {
+  return request('/api/users/me/quizzes');
+}
+
+export async function deleteQuiz(quizId) {
+  return request(`/api/quizzes/${quizId}`, { method: 'DELETE' });
+}
+
+export async function updateMe({ username, email, password }) {
+  const body = {};
+  if (username) body.username = username;
+  if (email) body.email = email;
+  if (password) body.password = password;
+
+  return request('/api/users/me', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
