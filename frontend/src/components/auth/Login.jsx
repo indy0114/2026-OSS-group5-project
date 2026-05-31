@@ -1,42 +1,38 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { login } from '../../api/auth.js';
+import { useNavigate, Link } from 'react-router-dom';
 import logoUrl from '../../assets/quizzly-logo-cropped.png';
 import './Auth.css';
 
 const TEXT = {
-  idPlaceholder: '\uC544\uC774\uB514',
-  passwordPlaceholder: '\uBE44\uBC00\uBC88\uD638',
-  loginButton: '\uB85C\uADF8\uC778',
-  signupLink: '\uACC4\uC815\uC774 \uC5C6\uC73C\uC2E0\uAC00\uC694?',
-  signupLinkBold: '\uD68C\uC6D0\uAC00\uC785',
-  emptyError: '\uC544\uC774\uB514\uC640 \uBE44\uBC00\uBC88\uD638\uB97C \uBAA8\uB450 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+  idPlaceholder: '이메일',
+  passwordPlaceholder: '비밀번호',
+  loginButton: '로그인',
+  signupLink: '계정이 없으신가요?',
+  signupLinkBold: '회원가입',
+  emptyError: '아이디와 비밀번호를 모두 입력해주세요.',
 };
 
 function Login({ onLoginSuccess }) {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ id: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!form.id.trim() || !form.password.trim()) {
       setErrorMessage(TEXT.emptyError);
       return;
     }
 
-    setIsSubmitting(true);
     setErrorMessage('');
 
-    try {
-      const user = await login(form);
-      onLoginSuccess?.(user);
-    } catch (error) {
-      setErrorMessage(error.message);
-    } finally {
-      setIsSubmitting(false);
+    if (typeof onLoginSuccess === 'function') {
+      onLoginSuccess();
+      return;
     }
+
+    navigate('/');
   };
 
   const handleKeyDown = (e) => {
@@ -67,12 +63,13 @@ function Login({ onLoginSuccess }) {
 
         {errorMessage && <p className="signup-error">{errorMessage}</p>}
 
-        <button type="button" className="signup-button" onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? '...' : TEXT.loginButton}
+        <button type="button" className="signup-button" onClick={handleSubmit}>
+          {TEXT.loginButton}
         </button>
 
         <p className="signup-footer">
-          {TEXT.signupLink} <Link to="/signup">{TEXT.signupLinkBold}</Link>
+          {TEXT.signupLink}{' '}
+          <Link to="/signup">{TEXT.signupLinkBold}</Link>
         </p>
       </div>
     </div>

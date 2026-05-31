@@ -13,18 +13,16 @@ const TEXT = {
   search: '퀴즈 검색',
   placeholder: '검색어를 입력하세요.',
   sortLabel: '정렬',
+  sort: '정렬',
   latest: '최신순',
   name: '이름순',
   category: '카테고리',
-  music: '음악',
   commonSense: '상식',
+  photo: '사진',
   movie: '영화',
-  game: '게임',
-  food: '음식',
+  music: '음악',
   sports: '스포츠',
-  person: '인물',
-  anime: '애니',
-  etc: '기타',
+  quizTitle: '퀴즈 제목',
   multipleChoice: '객관식',
   shortAnswer: '주관식',
   loading: '퀴즈를 불러오는 중...',
@@ -33,25 +31,12 @@ const TEXT = {
   questionUnit: '문제',
 };
 
-const categories = [
-  TEXT.all,
-  TEXT.music,
-  TEXT.commonSense,
-  TEXT.movie,
-  TEXT.game,
-  TEXT.food,
-  TEXT.sports,
-  TEXT.person,
-  TEXT.anime,
-  TEXT.etc,
-];
+const categories = [TEXT.all, TEXT.commonSense, TEXT.photo, TEXT.movie, TEXT.music, TEXT.sports];
 
 function HeroSection({ onCreateQuiz }) {
   return (
     <section className="hero" aria-labelledby="home-title">
-      <h1 id="home-title" className="sr-only">
-        Quizzly
-      </h1>
+      <h1 id="home-title" className="sr-only">Quizzly</h1>
       <img className="hero-logo" src={logoUrl} alt="Quizzly" />
       <div className="hero-actions">
         <button className="primary-action" type="button" onClick={onCreateQuiz}>

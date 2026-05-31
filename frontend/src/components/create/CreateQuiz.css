@@ -15,36 +15,133 @@
 
 .create-main {
   min-height: calc(100vh - 58px);
-  padding: 20px clamp(22px, 4vw, 150px);
+  padding: 53px clamp(24px, 8vw, 171px);
 }
 
+.create-main-type {
+  display: grid;
+  place-items: center;
+  padding-bottom: 160px;
+}
+
+.create-type-panel,
 .create-large-panel {
   border-radius: 20px;
   background: #cdd7df;
-  box-shadow: 0 16px 38px rgba(0, 45, 86, 0.14);
+  box-shadow: 0 18px 38px rgba(0, 45, 86, 0.14);
 }
 
+.create-type-panel {
+  width: min(658px, 100%);
+  min-height: 291px;
+  padding: 23px 26px 42px;
+}
+
+.create-type-panel h1,
 .create-large-panel h1 {
   margin: 0;
   color: #002d56;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: 0;
 }
 
 .create-panel-line {
-  width: calc(100% + 50px);
+  width: calc(100% + 52px);
   height: 1px;
-  margin: 18px -24px 0;
+  margin: 21px -26px 0;
   background: #002d56;
+}
+
+.type-card-list {
+  display: flex;
+  justify-content: center;
+  gap: 72px;
+  margin-top: 53px;
+}
+
+.type-card {
+  display: grid;
+  width: 125px;
+  height: 125px;
+  place-items: center;
+  padding: 20px 10px 17px;
+  border: 0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #002d56;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.type-card.selected {
+  border: 0;
+}
+
+.type-icon {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  margin-bottom: 2px;
+  color: #111111;
+}
+
+.type-icon.video {
+  position: relative;
+  width: 40px;
+  height: 28px;
+  border: 4px solid #111111;
+  border-radius: 5px;
+}
+
+.type-icon.video span {
+  position: absolute;
+  right: -13px;
+  width: 0;
+  height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 13px solid #111111;
+}
+
+.type-icon.text {
+  font-size: 43px;
+  font-weight: 900;
+  line-height: 0.8;
+}
+
+.type-icon.image {
+  position: relative;
+  border: 4px solid #111111;
+  border-radius: 5px;
+}
+
+.type-icon.image::before {
+  position: absolute;
+  top: 6px;
+  left: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #111111;
+  content: "";
+}
+
+.type-icon.image span {
+  width: 20px;
+  height: 12px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, transparent 45%, #111111 46% 58%, transparent 59%);
+  border-bottom: 4px solid #111111;
 }
 
 .create-large-panel {
   position: relative;
-  width: min(1080px, 100%);
-  min-height: 500px;
-  margin: 0 auto;
-  padding: 18px 26px 72px;
+  width: min(1097px, 100%);
+  min-height: 645px;
+  margin: 64px auto 0;
+  padding: 30px 29px 82px;
 }
 
 .panel-title-row {
@@ -54,24 +151,23 @@
 
 .settings-grid {
   display: grid;
-  grid-template-columns: 494px 1fr;
-  gap: 60px;
-  margin-top: 18px;
+  grid-template-columns: 473px 1fr;
+  gap: 86px;
+  margin-top: 26px;
 }
 
 .settings-left,
 .settings-right {
   display: grid;
   align-content: start;
-  gap: 18px;
-  min-width: 0;
+  gap: 24px;
 }
 
 .create-field {
   display: grid;
-  gap: 3px;
+  gap: 10px;
   color: #002d56;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 900;
 }
 
@@ -84,15 +180,15 @@
   background: #ffffff;
   color: #002d56;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   outline: none;
 }
 
 .create-field input,
 .create-field select {
-  height: 38px;
-  padding: 0 12px;
+  height: 45px;
+  padding: 0 15px;
 }
 
 .create-field select {
@@ -102,8 +198,8 @@
     linear-gradient(45deg, transparent 50%, #002d56 50%),
     linear-gradient(135deg, #002d56 50%, transparent 50%);
   background-position:
-    calc(100% - 24px) 15px,
-    calc(100% - 16px) 15px;
+    calc(100% - 24px) 19px,
+    calc(100% - 16px) 19px;
   background-size:
     8px 8px,
     8px 8px;
@@ -111,8 +207,8 @@
 }
 
 .create-field textarea {
-  height: 180px;
-  padding: 12px;
+  height: 224px;
+  padding: 15px;
   resize: none;
 }
 
@@ -126,8 +222,7 @@
   opacity: 1;
 }
 
-/* 썸네일 업로드 */
-.thumbnail-dropzone {
+.answer-type-grid {
   display: grid;
   place-items: center;
   align-content: center;
@@ -143,82 +238,24 @@
   cursor: pointer;
 }
 
-.thumbnail-icon {
-  width: 68px;
-  height: 68px;
-  margin-bottom: 12px;
-}
-
-.thumbnail-add {
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.thumbnail-hint {
-  margin-top: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #5a6776;
-}
-
-.thumbnail-spec {
-  margin-top: 5px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #8a96a4;
-}
-
-/* 썸네일 파일 선택 후 */
-.thumbnail-file-info {
+.answer-type {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 0 4px;
-}
-
-.thumbnail-file-icon {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-}
-
-.thumbnail-file-name {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 700;
+  justify-content: center;
+  height: 45px;
+  border: 2px solid #002d56;
+  border-radius: 10px;
+  background: #ffffff;
   color: #002d56;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: left;
+  font-size: 16px;
+  font-weight: 900;
+  text-align: center;
 }
 
-.thumbnail-remove {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border: 0;
-  border-radius: 50%;
-  background: #002d56;
-  color: #ffffff;
-  font-size: 11px;
-  cursor: pointer;
+.answer-type.selected {
+  box-shadow: none;
 }
 
-.thumbnail-remove:hover {
-  background: #c0392b;
-}
-
-.thumbnail-error {
-  font-size: 12px;
-  font-weight: 700;
-  color: #c0392b;
-}
-
-/* 공개여부 토글 */
 .visibility-switch {
   position: relative;
   width: 54px;
@@ -367,21 +404,16 @@
 
 .panel-save-button {
   position: absolute;
-  right: 26px;
-  bottom: 18px;
-  min-width: 70px;
-  height: 34px;
+  right: 20px;
+  bottom: 19px;
+  min-width: 72px;
+  height: 38px;
   border: 0;
   border-radius: 17px;
   background: #ffffff;
   color: #002d56;
   font-size: 16px;
   font-weight: 900;
-}
-
-.panel-save-button:hover {
-  background: #002d56;
-  color: #ffffff;
 }
 
 @media (max-width: 1180px) {
@@ -405,9 +437,23 @@
     padding: 32px 16px;
   }
 
+  .create-type-panel {
+    padding: 22px 18px 30px;
+  }
+
   .create-panel-line {
     width: calc(100% + 36px);
     margin-inline: -18px;
+  }
+
+  .type-card-list {
+    gap: 14px;
+  }
+
+  .type-card {
+    width: 96px;
+    height: 105px;
+    font-size: 15px;
   }
 
   .create-large-panel {
@@ -415,8 +461,7 @@
     padding: 24px 18px 76px;
   }
 
-  .order-card-grid {
+  .answer-type-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
   }
 }
