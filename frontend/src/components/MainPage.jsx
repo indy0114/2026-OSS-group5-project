@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logoUrl from '../assets/quizzly-logo-cropped.png';
+import { getQuizzes } from '../api/quizzes.js';
 import './MainPage.css';
 
 const TEXT = {
@@ -23,40 +25,14 @@ const TEXT = {
   quizTitle: '퀴즈 제목',
   multipleChoice: '객관식',
   shortAnswer: '주관식',
-  ox: 'O/X',
-  mixed: '혼합형',
-  simpleQuiz: '카테고리에 어울리는 가벼운 퀴즈',
-  commonSenseCheck: '상식 체크',
-  commonSenseDescription: '기본 상식을 빠르게 확인해요',
-  movieQuiz: '영화 장면 맞히기',
-  movieDescription: '인기 영화 속 장면 퀴즈',
-  musicQuiz: '음악 퀴즈',
-  musicDescription: '가사와 멜로디 힌트를 보고 맞혀요',
-  sportsRecord: '스포츠 기록',
-  sportsDescription: '기억에 남는 스포츠 순간들',
+  loading: '퀴즈를 불러오는 중...',
+  empty: '아직 등록된 퀴즈가 없어요. 첫 퀴즈를 만들어보세요!',
+  loadError: '퀴즈를 불러오지 못했어요. 잠시 후 다시 시도해주세요.',
+  questionUnit: '문제',
 };
 
 const categories = [TEXT.all, TEXT.commonSense, TEXT.photo, TEXT.movie, TEXT.music, TEXT.sports];
 
-const quizzes = [
-  { id: 1, title: TEXT.quizTitle, type: TEXT.multipleChoice, category: TEXT.photo, description: TEXT.simpleQuiz, createdAt: '2026-05-05' },
-  { id: 2, title: TEXT.commonSenseCheck, type: TEXT.shortAnswer, category: TEXT.commonSense, description: TEXT.commonSenseDescription, createdAt: '2026-05-04' },
-  { id: 3, title: TEXT.movieQuiz, type: TEXT.ox, category: TEXT.movie, description: TEXT.movieDescription, createdAt: '2026-05-03' },
-  { id: 4, title: TEXT.musicQuiz, type: TEXT.multipleChoice, category: TEXT.music, description: TEXT.musicDescription, createdAt: '2026-05-02' },
-  { id: 5, title: TEXT.sportsRecord, type: TEXT.mixed, category: TEXT.sports, description: TEXT.sportsDescription, createdAt: '2026-05-01' },
-];
-
-const quizFeed = Array.from({ length: 30 }, (_, index) => {
-  const quiz = quizzes[index % quizzes.length];
-  return {
-    ...quiz,
-    id: index + 1,
-    title: index < quizzes.length ? quiz.title : `${quiz.title} ${Math.floor(index / quizzes.length) + 1}`,
-    createdAt: `2026-04-${String(30 - index).padStart(2, '0')}`,
-  };
-});
-
-//HeroSection
 function HeroSection({ onCreateQuiz }) {
   return (
     <section className="hero" aria-labelledby="home-title">
@@ -77,16 +53,30 @@ function HeroSection({ onCreateQuiz }) {
   );
 }
 
-//QuizCard
-function QuizCard({ quiz }) {
+function QuizCard({ quiz, onClick }) {
   return (
-    <article className="quiz-card">
-      <div className="thumbnail" aria-hidden="true" />
+    <article className="quiz-card" onClick={onClick} style={{ cursor: 'pointer' }}>
+      <div
+        className="thumbnail"
+        aria-hidden="true"
+        style={
+          quiz.thumbnail
+            ? {
+                backgroundImage: `url(${quiz.thumbnail})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }
+            : undefined
+        }
+      />
       <div className="card-body">
         <h2>{quiz.title}</h2>
         <div className="card-meta">
-          <span>{quiz.type}</span>
           <span>{quiz.category}</span>
+          <span>
+            {quiz.questionCount}
+            {TEXT.questionUnit}
+          </span>
         </div>
         <p>{quiz.description}</p>
       </div>
@@ -94,16 +84,26 @@ function QuizCard({ quiz }) {
   );
 }
 
-//QuizSection
-function QuizSection({ activeCategory, onCategoryChange, query, onQueryChange, sortOrder, onSortOrderChange, quizzes }) {
+function QuizSection({
+  activeCategory,
+  onCategoryChange,
+  query,
+  onQueryChange,
+  sortOrder,
+  onSortOrderChange,
+  quizzes,
+  loading,
+  error,
+}) {
+  const navigate = useNavigate();
   const [isSortOpen, setIsSortOpen] = useState(false);
   const currentSortText = sortOrder === 'name' ? TEXT.name : TEXT.latest;
-
+ 
   const handleSortChange = (nextSortOrder) => {
     onSortOrderChange(nextSortOrder);
     setIsSortOpen(false);
   };
-
+ 
   return (
     <section className="quiz-section" id="quiz-list" aria-label={TEXT.quizList}>
       <div className="quiz-toolbar">
@@ -116,7 +116,7 @@ function QuizSection({ activeCategory, onCategoryChange, query, onQueryChange, s
             placeholder={TEXT.placeholder}
           />
         </label>
-
+ 
         <div className="sort-menu" aria-label={TEXT.sortLabel}>
           <button
             className="sort-button"
@@ -127,7 +127,7 @@ function QuizSection({ activeCategory, onCategoryChange, query, onQueryChange, s
           >
             {currentSortText}
           </button>
-
+ 
           {isSortOpen && (
             <div className="sort-options" role="menu">
               <button
@@ -150,7 +150,7 @@ function QuizSection({ activeCategory, onCategoryChange, query, onQueryChange, s
           )}
         </div>
       </div>
-
+ 
       <div className="category-list" aria-label={TEXT.category}>
         {categories.map((category) => (
           <button
@@ -163,12 +163,20 @@ function QuizSection({ activeCategory, onCategoryChange, query, onQueryChange, s
           </button>
         ))}
       </div>
-
-      <div className="quiz-grid">
-        {quizzes.map((quiz) => (
-          <QuizCard quiz={quiz} key={quiz.id} />
-        ))}
-      </div>
+ 
+      {loading ? (
+        <p className="quiz-status">{TEXT.loading}</p>
+      ) : error ? (
+        <p className="quiz-status">{TEXT.loadError}</p>
+      ) : quizzes.length === 0 ? (
+        <p className="quiz-status">{TEXT.empty}</p>
+      ) : (
+        <div className="quiz-grid">
+          {quizzes.map((quiz) => (
+            <QuizCard quiz={quiz} key={quiz.id} onClick={() => navigate(`/solve/${quiz.id}`)} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -177,24 +185,56 @@ function MainPage({ onCreateQuiz }) {
   const [activeCategory, setActiveCategory] = useState(TEXT.all);
   const [query, setQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('latest');
-
+ 
+  const [allQuizzes, setAllQuizzes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+ 
+  useEffect(() => {
+    let alive = true;
+    getQuizzes()
+      .then((data) => {
+        if (!alive) return;
+        const mapped = data.map((q) => ({
+          id: q.id,
+          title: q.title,
+          category: q.category || TEXT.etc,
+          description: q.description || '',
+          questionCount: q.question_count ?? 0,
+          thumbnail: q.thumbnail || null,
+          createdAt: q.created_at,
+        }));
+        setAllQuizzes(mapped);
+      })
+      .catch((e) => {
+        if (alive) setError(e.message || 'error');
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+ 
   const filteredQuizzes = useMemo(() => {
-    const visible = quizFeed.filter((quiz) => {
+    const visible = allQuizzes.filter((quiz) => {
       const matchesCategory = activeCategory === TEXT.all || quiz.category === activeCategory;
       const keyword = query.trim().toLowerCase();
       const matchesQuery =
         !keyword ||
         quiz.title.toLowerCase().includes(keyword) ||
         quiz.category.toLowerCase().includes(keyword);
+ 
       return matchesCategory && matchesQuery;
     });
-
+ 
     return [...visible].sort((a, b) => {
       if (sortOrder === 'name') return a.title.localeCompare(b.title, 'ko');
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-  }, [activeCategory, query, sortOrder]);
-
+  }, [allQuizzes, activeCategory, query, sortOrder]);
+ 
   return (
     <main>
       <HeroSection onCreateQuiz={onCreateQuiz} />
@@ -206,6 +246,8 @@ function MainPage({ onCreateQuiz }) {
         sortOrder={sortOrder}
         onSortOrderChange={setSortOrder}
         quizzes={filteredQuizzes}
+        loading={loading}
+        error={error}
       />
     </main>
   );

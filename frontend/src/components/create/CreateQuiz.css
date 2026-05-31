@@ -224,8 +224,18 @@
 
 .answer-type-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 216px));
-  gap: 24px;
+  place-items: center;
+  align-content: center;
+  gap: 0;
+  width: 100%;
+  box-sizing: border-box;
+  height: 160px;
+  padding: 16px;
+  border: 2px dashed #8e9bab;
+  border-radius: 10px;
+  background: #d7dee6;
+  color: #002d56;
+  cursor: pointer;
 }
 
 .answer-type {
@@ -276,6 +286,122 @@
   transform: translateX(32px);
 }
 
+/* 문제 타이머 */
+.timer-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.timer-chip {
+  height: 34px;
+  padding: 0 16px;
+  border: 2px solid #b9c3cd;
+  border-radius: 17px;
+  background: #ffffff;
+  color: #002d56;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.timer-chip.selected {
+  border-color: #002d56;
+  background: #002d56;
+  color: #ffffff;
+}
+
+/* 문제 출제 순서 */
+.order-field {
+  margin-top: 22px;
+  gap: 12px;
+}
+
+.order-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.order-info {
+  font-size: 17px;
+  font-weight: 400;
+  color: #5a6776;
+}
+
+.order-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.order-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 54px;
+  padding: 14px 18px;
+  border: 2px solid #b9c3cd;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #002d56;
+  text-align: left;
+  cursor: pointer;
+}
+
+.order-card.selected {
+  border-color: #002d56;
+}
+
+.order-radio {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #9aa6b2;
+  border-radius: 50%;
+}
+
+.order-card.selected .order-radio {
+  border-color: #002d56;
+}
+
+.order-radio span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.order-card.selected .order-radio span {
+  background: #002d56;
+}
+
+.order-icon {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+}
+
+.order-text {
+  display: grid;
+  gap: 5px;
+}
+
+.order-title {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.order-desc {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5a6776;
+}
+
 .panel-save-button {
   position: absolute;
   right: 20px;
@@ -298,6 +424,10 @@
   .settings-grid {
     grid-template-columns: 1fr;
     gap: 30px;
+  }
+
+  .thumbnail-dropzone {
+    height: 140px;
   }
 }
 
