@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { deleteAccount, getMe, getMyQuizzes, deleteQuiz, updateMe } from '../../api/auth.js';
+import { getQuiz } from '../../api/quizzes.js';
 import './MyPage.css';
 
 const TEXT = {
@@ -124,7 +126,7 @@ function UserInfo({ userInfo, onSave, onDeleteAccount }) {
   );
 }
 
-function QuizList({ quizzes, onDeleteQuiz }) {
+function QuizList({ quizzes, onDeleteQuiz, onEditQuiz }) {
   return quizzes.map((quiz) => (
     <div key={quiz.id} className="mypage-quiz-item">
       <div className="mypage-quiz-thumbnail" />
@@ -140,7 +142,7 @@ function QuizList({ quizzes, onDeleteQuiz }) {
         {quiz.description && <p className="mypage-quiz-desc">{quiz.description}</p>}
       </div>
       <div className="mypage-quiz-actions">
-        <button className="mypage-btn primary small" type="button">
+        <button className="mypage-btn primary small" type="button" onClick={() => onEditQuiz(quiz.id)}>
           {TEXT.quizEditButton}
         </button>
         <button
@@ -156,6 +158,7 @@ function QuizList({ quizzes, onDeleteQuiz }) {
 }
 
 function MyPage({ user, onAccountDeleted }) {
+  const navigate = useNavigate();
   const [infoOpen, setInfoOpen] = useState(true);
   const [quizOpen, setQuizOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(user);
@@ -182,6 +185,29 @@ function MyPage({ user, onAccountDeleted }) {
       onAccountDeleted?.();
     } catch (error) {
       setErrorMessage(error.message || TEXT.deleteError);
+    }
+  };
+
+  const handleEditQuiz = async (quizId) => {
+    try {
+      const data = await getQuiz(quizId);
+      sessionStorage.setItem(
+        'quizDraft',
+        JSON.stringify({
+          editId: data.id,
+          title: data.title || '',
+          description: data.description || '',
+          category: data.category || null,
+          visibility: data.visibility || 'public',
+          order: data.order_mode || 'random',
+          timeLimit: data.questions?.[0]?.timeLimit ?? 20,
+          thumbnail: data.thumbnail || null,
+          questions: data.questions || [],
+        }),
+      );
+      navigate('/create');
+    } catch (error) {
+      setErrorMessage(error.message || '퀴즈 정보를 불러오지 못했습니다.');
     }
   };
 
@@ -225,7 +251,7 @@ function MyPage({ user, onAccountDeleted }) {
 
         <Accordion title={TEXT.quizSection} open={quizOpen} onToggle={() => setQuizOpen((prev) => !prev)}>
           {myQuizzes.length > 0 ? (
-            <QuizList quizzes={myQuizzes} onDeleteQuiz={handleDeleteQuiz} />
+            <QuizList quizzes={myQuizzes} onDeleteQuiz={handleDeleteQuiz} onEditQuiz={handleEditQuiz} />
           ) : (
             <p style={{ textAlign: 'center', padding: '30px', color: '#888', fontSize: '16px' }}>
               생성한 퀴즈가 없습니다.

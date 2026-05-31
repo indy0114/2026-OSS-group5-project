@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import iconUrl from '../../assets/quizzly-icon.png';
 import './CreateQuiz.css';
@@ -32,6 +32,8 @@ const TEXT = {
   thumbnailHint: '클릭하여 이미지를 업로드하세요.',
   thumbnailSpec: '권장: 16:9 비율, 최대 5MB',
   thumbnailSizeError: '파일 크기가 5MB를 초과합니다. 다른 파일을 선택해주세요.',
+  titleRequired: '제목을 입력해주세요.',
+  timer: '문제 타이머',
 };
 
 const categories = [
@@ -45,6 +47,14 @@ const categories = [
   TEXT.person,
   TEXT.anime,
   TEXT.etc,
+];
+
+const timerOptions = [
+  { value: 5, label: '5초' },
+  { value: 10, label: '10초' },
+  { value: 15, label: '15초' },
+  { value: 20, label: '20초' },
+  { value: 0, label: '시간제한 없음' },
 ];
 
 const orderTypes = [
@@ -61,6 +71,15 @@ const orderTypes = [
     desc: '문제가 등록된 순서대로 출제됩니다.',
   },
 ];
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('이미지를 읽지 못했습니다.'));
+    reader.readAsDataURL(file);
+  });
+}
 
 function CreateHeader({ onCancel, onSave }) {
   return (
@@ -99,24 +118,18 @@ function ThumbnailIcon() {
   );
 }
 
-function ThumbnailUpload({ thumbnailFile, onChange }) {
+function ThumbnailUpload({ thumbnailFile, existingUrl, onChange }) {
   const inputRef = useRef(null);
   const [error, setError] = useState('');
-
-  const handleClick = () => {
-    inputRef.current.click();
-  };
 
   const handleChange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
     if (file.size > 5 * 1024 * 1024) {
       setError(TEXT.thumbnailSizeError);
       event.target.value = '';
       return;
     }
-
     setError('');
     onChange('thumbnailFile', file);
   };
@@ -125,20 +138,17 @@ function ThumbnailUpload({ thumbnailFile, onChange }) {
     event.stopPropagation();
     setError('');
     onChange('thumbnailFile', null);
+    onChange('existingThumbnailUrl', null);
     inputRef.current.value = '';
   };
+
+  const showExisting = !thumbnailFile && existingUrl;
 
   return (
     <div className="create-field">
       <span>{TEXT.thumbnail}</span>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleChange}
-      />
-      <button className="thumbnail-dropzone" type="button" onClick={handleClick}>
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleChange} />
+      <button className="thumbnail-dropzone" type="button" onClick={() => inputRef.current.click()}>
         {thumbnailFile ? (
           <div className="thumbnail-file-info">
             <svg className="thumbnail-file-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -146,14 +156,13 @@ function ThumbnailUpload({ thumbnailFile, onChange }) {
               <polyline points="14 2 14 8 20 8" fill="none" stroke="#002d56" strokeWidth="1.8" strokeLinejoin="round" />
             </svg>
             <span className="thumbnail-file-name">{thumbnailFile.name}</span>
-            <button
-              className="thumbnail-remove"
-              type="button"
-              aria-label="파일 삭제"
-              onClick={handleRemove}
-            >
-              ✕
-            </button>
+            <button className="thumbnail-remove" type="button" aria-label="파일 삭제" onClick={handleRemove}>✕</button>
+          </div>
+        ) : showExisting ? (
+          <div className="thumbnail-file-info">
+            <img src={existingUrl} alt="기존 썸네일" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
+            <span className="thumbnail-file-name">기존 썸네일 (클릭하여 변경)</span>
+            <button className="thumbnail-remove" type="button" aria-label="썸네일 제거" onClick={handleRemove}>✕</button>
           </div>
         ) : (
           <>
@@ -242,7 +251,7 @@ function SettingsStep({ form, onChange, onSave }) {
         </div>
 
         <div className="settings-right">
-          <ThumbnailUpload thumbnailFile={form.thumbnailFile} onChange={onChange} />
+          <ThumbnailUpload thumbnailFile={form.thumbnailFile} existingUrl={form.existingThumbnailUrl} onChange={onChange} />
 
           <div className="create-field">
             <span>{TEXT.visibility}</span>
@@ -255,6 +264,22 @@ function SettingsStep({ form, onChange, onSave }) {
             >
               <span />
             </button>
+          </div>
+
+          <div className="create-field">
+            <span>{TEXT.timer}</span>
+            <div className="timer-chip-group">
+              {timerOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={form.timeLimit === opt.value ? 'timer-chip selected' : 'timer-chip'}
+                  type="button"
+                  onClick={() => onChange('timeLimit', opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -301,22 +326,70 @@ function CreateQuizPage() {
     category: categories[0],
     visibility: 'public',
     order: 'random',
+    timeLimit: 20,
     thumbnailFile: null,
+    existingThumbnailUrl: null,
   });
+
+  // 편집 모드: sessionStorage에 editId가 있으면 폼 초기화
+  useEffect(() => {
+    const raw = sessionStorage.getItem('quizDraft');
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    if (!draft.editId) return;
+    setForm({
+      title: draft.title || '',
+      description: draft.description || '',
+      category: draft.category || categories[0],
+      visibility: draft.visibility || 'public',
+      order: draft.order || 'random',
+      timeLimit: draft.timeLimit ?? 20,
+      thumbnailFile: null,
+      existingThumbnailUrl: draft.thumbnail || null,
+    });
+  }, []);
 
   const updateForm = (key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const handleSave = () => {
-    // TODO: 퀴즈 기본정보 저장 처리
-    navigate('/add'); // 슬라이드 목록 페이지로 이동
+  const handleSave = async () => {
+    if (!form.title.trim()) {
+      alert(TEXT.titleRequired);
+      return;
+    }
+
+    const prevRaw = sessionStorage.getItem('quizDraft');
+    const prev = prevRaw ? JSON.parse(prevRaw) : {};
+
+    let thumbnail = form.existingThumbnailUrl ?? null;
+    if (form.thumbnailFile) {
+      try {
+        thumbnail = await fileToDataUrl(form.thumbnailFile);
+      } catch {
+        thumbnail = null;
+      }
+    }
+
+    const draft = {
+      ...(prev.editId ? { editId: prev.editId, questions: prev.questions } : {}),
+      title: form.title.trim(),
+      description: form.description.trim(),
+      category: form.category === TEXT.categoryPlaceholder ? null : form.category,
+      visibility: form.visibility,
+      order: form.order,
+      timeLimit: form.timeLimit,
+      thumbnail,
+    };
+    sessionStorage.setItem('quizDraft', JSON.stringify(draft));
+    navigate('/add');
   };
 
   const handleCancel = () => {
-    navigate(-1); // 이전 페이지로 (필요 시 navigate('/')로 변경)
+    sessionStorage.removeItem('quizDraft');
+    navigate(-1);
   };
-
+ 
   return (
     <div className="create-page">
       <CreateHeader onCancel={handleCancel} onSave={handleSave} />

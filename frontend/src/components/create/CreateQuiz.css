@@ -134,8 +134,8 @@
   gap: 0;
   width: 100%;
   box-sizing: border-box;
-  height: 270px;
-  padding: 20px;
+  height: 160px;
+  padding: 16px;
   border: 2px dashed #8e9bab;
   border-radius: 10px;
   background: #d7dee6;
@@ -247,6 +247,33 @@
 
 .visibility-switch.active span {
   transform: translateX(32px);
+}
+
+/* 문제 타이머 */
+.timer-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.timer-chip {
+  height: 34px;
+  padding: 0 16px;
+  border: 2px solid #b9c3cd;
+  border-radius: 17px;
+  background: #ffffff;
+  color: #002d56;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.timer-chip.selected {
+  border-color: #002d56;
+  background: #002d56;
+  color: #ffffff;
 }
 
 /* 문제 출제 순서 */
@@ -368,7 +395,7 @@
   }
 
   .thumbnail-dropzone {
-    height: 240px;
+    height: 140px;
   }
 }
 

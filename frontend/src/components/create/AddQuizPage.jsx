@@ -1,16 +1,17 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import iconUrl from '../../assets/quizzly-icon.png';
+import { createQuiz, updateQuiz } from '../../api/quizzes.js';
 import './AddQuiz.css';
 
 const TEXT = {
-  home: 'Quizzly 🏠',
+  home: 'Quizzly',
   cancel: '취소',
   save: '저장',
-  // 슬라이드 목록
   deleteSlide: '슬라이드 삭제',
   incompleteError: '퀴즈가 완성되지 않았습니다.',
-  // 슬라이드 상세
+  noDraftError: '퀴즈 기본정보가 없습니다. 처음부터 다시 시도해주세요.',
+  saveFailed: '퀴즈 저장에 실패했습니다.',
   slideCreate: '퀴즈 슬라이드 만들기',
   questionTitle: '문제 타이틀',
   questionTitlePlaceholder: '문제의 제목을 입력하세요. (최대 50자)',
@@ -62,7 +63,6 @@ function AddHeader({ onCancel, onSave }) {
   );
 }
 
-/* ---------- 아이콘 ---------- */
 function PlusIcon() {
   return (
     <svg className="slide-plus-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -195,7 +195,6 @@ function MediaCard({ icon, label, accept, media, onChangeMedia }) {
   );
 }
 
-/* ---------- 슬라이드 목록 화면 ---------- */
 function SlideListView({ slides, onAdd, onEdit, onDelete }) {
   return (
     <main className="add-main add-main-list">
@@ -231,7 +230,6 @@ function SlideListView({ slides, onAdd, onEdit, onDelete }) {
   );
 }
 
-/* ---------- 슬라이드 상세 화면 ---------- */
 function SlideDetailView({ slide, onChange, onSaveSlide, onCancel }) {
   const updateAnswer = (index, value) => {
     const next = [...slide.answers];
@@ -282,7 +280,6 @@ function SlideDetailView({ slide, onChange, onSaveSlide, onCancel }) {
         <div className="add-panel-line" />
 
         <div className="detail-grid">
-          {/* 왼쪽 */}
           <div className="detail-left">
             <label className="add-field">
               <span>{TEXT.questionTitle}</span>
@@ -334,7 +331,6 @@ function SlideDetailView({ slide, onChange, onSaveSlide, onCancel }) {
             </div>
           </div>
 
-          {/* 오른쪽 */}
           <div className="detail-right">
             <div className="add-field">
               <span>{TEXT.answerType}</span>
@@ -453,7 +449,6 @@ function SlideDetailView({ slide, onChange, onSaveSlide, onCancel }) {
   );
 }
 
-/* ---------- 슬라이드 검증 ---------- */
 function validateSlide(slide) {
   if (!slide.title.trim()) {
     return TEXT.titleRequired;
@@ -466,11 +461,10 @@ function validateSlide(slide) {
       return TEXT.answerRequired;
     }
   } else {
-    // 객관식
     if (filledAnswers.length === 0) {
       return TEXT.optionRequired;
     }
-    // 선택된 정답이 1개 이상이고, 모두 채워져 있는지
+
     if (slide.correctList.length === 0) {
       return TEXT.correctRequired;
     }
@@ -482,10 +476,43 @@ function validateSlide(slide) {
     }
   }
 
-  return null; // 통과
+  return null;
 }
 
-/* ---------- 슬라이드 생성 함수 ---------- */
+function slideToQuestion(slide, timeLimit) {
+  const base = {
+    id: String(slide.id),
+    title: slide.title.trim(),
+    description: (slide.desc || '').trim(),
+    timeLimit: timeLimit ?? 20,
+  };
+ 
+  if (slide.type === 'objective') {
+    // 비어있지 않은 보기만 사용. id 는 원래 인덱스를 유지 → correctList 와 매칭 보존
+    const options = slide.answers
+      .map((text, index) => ({ id: String(index), text: text.trim() }))
+      .filter((option) => option.text !== '');
+    const correctIds = slide.correctList.map((index) => String(index));
+ 
+    return {
+      ...base,
+      type: 'multiple',
+      options,
+      answer: correctIds[0] ?? null, // 대표 정답 (단일 선택 호환)
+      answers: correctIds, // 복수 정답 전체 보존
+    };
+  }
+ 
+  // 주관식
+  const accepted = slide.answers.map((answer) => answer.trim()).filter(Boolean);
+  return {
+    ...base,
+    type: 'short',
+    answer: accepted[0] ?? '', // 대표 정답
+    answers: accepted, // 허용 답변 전체 보존
+  };
+}
+
 let slideSeq = 0;
 function createSlide() {
   slideSeq += 1;
@@ -503,12 +530,55 @@ function createSlide() {
   };
 }
 
+function questionToSlide(question) {
+  slideSeq += 1;
+  const base = {
+    id: slideSeq,
+    complete: true,
+    title: question.title || '',
+    desc: question.description || '',
+    photo: { file: null, link: '' },
+    video: { file: null, link: '' },
+    audio: { file: null, link: '' },
+  };
+
+  if (question.type === 'multiple') {
+    const options = question.options || [];
+    const correctIds = question.answers || (question.answer != null ? [String(question.answer)] : []);
+    return {
+      ...base,
+      type: 'objective',
+      answers: options.map((o) => o.text),
+      correctList: correctIds
+        .map((aid) => options.findIndex((o) => String(o.id) === String(aid)))
+        .filter((i) => i >= 0),
+    };
+  }
+
+  return {
+    ...base,
+    type: 'subjective',
+    answers: question.answers?.length ? question.answers : [question.answer ?? ''],
+    correctList: [],
+  };
+}
+
 /* ---------- 메인 페이지 ---------- */
 function AddQuizPage() {
   const navigate = useNavigate();
-  const [view, setView] = useState('list'); // 'list' | 'detail'
-  const [slides, setSlides] = useState([]);
+  const [view, setView] = useState('list');
+  const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
+  // 편집 모드: draft에 questions가 있으면 슬라이드로 변환해 초기화
+  const [slides, setSlides] = useState(() => {
+    const raw = sessionStorage.getItem('quizDraft');
+    if (!raw) return [];
+    const draft = JSON.parse(raw);
+    if (!draft.editId || !draft.questions?.length) return [];
+    slideSeq = 0;
+    return draft.questions.map(questionToSlide);
+  });
 
   const editingSlide = slides.find((slide) => slide.id === editingId) || null;
 
@@ -551,7 +621,6 @@ function AddQuizPage() {
     setEditingId(null);
   };
 
-  // 상세 화면에서 취소: 미완성(새로 추가한) 슬라이드는 목록에 남기지 않음
   const handleCancelDetail = () => {
     setSlides((current) => current.filter((slide) => !(slide.id === editingId && !slide.complete)));
     setView('list');
@@ -566,14 +635,36 @@ function AddQuizPage() {
     }
   };
 
-  const handleSaveQuiz = () => {
-    // 슬라이드가 없거나, 미완성 슬라이드가 하나라도 있으면 경고
+  const handleSaveQuiz = async () => {
     if (slides.length === 0 || slides.some((slide) => !slide.complete)) {
       alert(TEXT.incompleteError);
       return;
     }
-    // TODO: 전체 퀴즈 저장 처리
-    navigate('/');
+ 
+    const draftRaw = sessionStorage.getItem('quizDraft');
+    if (!draftRaw) {
+      alert(TEXT.noDraftError);
+      navigate('/create');
+      return;
+    }
+    const draft = JSON.parse(draftRaw);
+ 
+    const questions = slides.map((slide) => slideToQuestion(slide, draft.timeLimit));
+ 
+    setSaving(true);
+    try {
+      if (draft.editId) {
+        await updateQuiz(draft.editId, { ...draft, questions });
+      } else {
+        await createQuiz({ ...draft, questions });
+      }
+      sessionStorage.removeItem('quizDraft');
+      navigate('/');
+    } catch (error) {
+      alert(error.message || TEXT.saveFailed);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

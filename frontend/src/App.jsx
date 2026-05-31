@@ -8,6 +8,7 @@ import Signup from './components/auth/Signup.jsx';
 import MyPage from './components/auth/MyPage.jsx';
 import CreateQuizPage from './components/create/CreateQuizPage.jsx';
 import AddQuizPage from './components/create/AddQuizPage.jsx';
+import SolveQuizPage from './components/create/SolveQuizPage.jsx';
 import { clearToken, getMe, getToken, logout } from './api/auth.js';
 
 function App() {
@@ -125,6 +126,7 @@ function App() {
            </>
           }
         />
+        <Route path="/solve/:id" element={<SolveQuizPage isLoggedIn={isLoggedIn} onLogout={handleLogout} />} />
         <Route
           path="/mypage"
           element={
