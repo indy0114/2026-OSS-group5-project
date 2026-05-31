@@ -83,7 +83,6 @@ button {
   width: 39px;
   height: 39px;
   object-fit: contain;
-  transform: translateX(-2px);
 }
 
 .header-actions {
@@ -97,9 +96,7 @@ button {
   min-height: 26px;
   border: 2px solid var(--navy);
   border-radius: 999px;
-  background:
-    linear-gradient(90deg, var(--brown) 0%, var(--brown) 100%) left / 0 100% no-repeat,
-    var(--white);
+  background: var(--white);
   color: var(--navy);
   font-size: 14px;
   font-weight: 800;
@@ -107,8 +104,7 @@ button {
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
-    background-size 240ms ease,
-    color 160ms ease;
+    background 160ms ease;
 }
 
 .pill-button.compact {
@@ -122,14 +118,10 @@ button {
 .pill-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 7px 16px rgba(4, 48, 82, 0.16);
-  background-size: 100% 100%;
-  color: var(--white);
 }
 
 /* 히어로 섹션 (Hero Section) */
 .hero {
-  position: relative;
-  isolation: isolate;
   display: flex;
   min-height: calc(100vh - 58px);
   align-items: center;
@@ -137,199 +129,9 @@ button {
   flex-direction: column;
   padding: clamp(56px, 10vh, 96px) 20px 20px;
   background: var(--white);
-  overflow: hidden;
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background:
-    radial-gradient(circle at 6% -4%, rgba(176, 205, 237, 0.48) 0 205px, transparent 208px),
-    radial-gradient(circle at 96% 108%, rgba(176, 205, 237, 0.54) 0 230px, transparent 234px),
-    radial-gradient(circle at 89% 96%, transparent 0 265px, rgba(125, 166, 214, 0.32) 267px 270px, transparent 272px),
-    radial-gradient(circle at 7% 108%, transparent 0 295px, rgba(125, 166, 214, 0.3) 298px 301px, transparent 303px),
-    radial-gradient(circle at -1% 30%, transparent 0 82px, rgba(125, 166, 214, 0.4) 84px 87px, transparent 89px),
-    radial-gradient(circle at 76% -12%, rgba(176, 205, 237, 0.22) 0 250px, transparent 254px),
-    radial-gradient(circle at 18% 82%, rgba(125, 166, 214, 0.2) 0 78px, transparent 80px),
-    radial-gradient(circle at 82% 21%, rgba(125, 166, 214, 0.18) 0 64px, transparent 66px);
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(circle at 33% 34%, rgba(150, 115, 85, 0.45) 0 8px, transparent 9px),
-    radial-gradient(circle at 74% 68%, rgba(0, 45, 86, 0.18) 0 7px, transparent 8px),
-    radial-gradient(circle at 89% 43%, rgba(125, 166, 214, 0.42) 0 12px, transparent 13px),
-    radial-gradient(circle at 11% 64%, rgba(125, 166, 214, 0.48) 0 14px, transparent 15px),
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.88) 0 34%, rgba(255, 255, 255, 0.46) 58%, transparent 100%);
-  pointer-events: none;
-}
-
-.hero-decor {
-  position: absolute;
-  pointer-events: none;
-}
-
-.hero-decor-pill {
-  top: 13%;
-  right: 5%;
-  z-index: -1;
-  width: 50px;
-  height: 142px;
-  border-radius: 999px;
-  background: rgba(176, 205, 237, 0.72);
-  transform: rotate(43deg);
-}
-
-.hero-decor-pill::after {
-  content: "";
-  position: absolute;
-  top: -70px;
-  left: 0;
-  width: 50px;
-  height: 96px;
-  border-radius: inherit;
-  background: rgba(149, 184, 224, 0.58);
-}
-
-.hero-decor-plus {
-  right: 23%;
-  bottom: 31%;
-  z-index: -1;
-  width: 24px;
-  height: 24px;
-  opacity: 0.9;
-}
-
-.hero-decor-plus::before,
-.hero-decor-plus::after {
-  content: "";
-  position: absolute;
-  border-radius: 999px;
-  background: rgba(125, 166, 214, 0.58);
-}
-
-.hero-decor-plus::before {
-  top: 10px;
-  left: 0;
-  width: 24px;
-  height: 5px;
-}
-
-.hero-decor-plus::after {
-  top: 0;
-  left: 10px;
-  width: 5px;
-  height: 24px;
-}
-
-.hero-decor-plus::before,
-.hero-decor-plus::after {
-  box-shadow:
-    -360px -150px 0 rgba(125, 166, 214, 0.28),
-    300px -80px 0 rgba(125, 166, 214, 0.26);
-}
-
-.hero-decor-ring {
-  z-index: -1;
-  border: 4px solid rgba(150, 115, 85, 0.34);
-  border-radius: 50%;
-}
-
-.hero-decor-ring-left {
-  left: 8%;
-  top: 57%;
-  width: 32px;
-  height: 32px;
-  border-color: rgba(125, 166, 214, 0.38);
-}
-
-.hero-decor-ring-right {
-  right: 12%;
-  top: 59%;
-  width: 42px;
-  height: 42px;
-}
-
-.hero-decor-dots {
-  z-index: -1;
-  width: 126px;
-  height: 96px;
-  opacity: 0.76;
-  background-image: radial-gradient(circle, rgba(125, 166, 214, 0.58) 0 3px, transparent 4px);
-  background-size: 22px 22px;
-}
-
-.hero-decor-dots-top {
-  left: 14%;
-  top: 12%;
-}
-
-.hero-decor-dots-bottom {
-  right: 10%;
-  bottom: 6%;
-  opacity: 0.72;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 4px, rgba(125, 166, 214, 0.28) 4px 5px, transparent 6px);
-}
-
-.hero-decor-stripes {
-  left: -44px;
-  top: 61%;
-  z-index: -1;
-  width: 138px;
-  height: 172px;
-  border-radius: 80px 80px 0 0;
-  opacity: 0.66;
-  background: repeating-linear-gradient(
-    135deg,
-    rgba(176, 205, 237, 0.76) 0 5px,
-    transparent 5px 15px
-  );
-}
-
-.hero-decor-bubble {
-  z-index: -1;
-  border-radius: 50%;
-}
-
-.hero-decor-bubble-one {
-  left: 24%;
-  top: 20%;
-  width: 12px;
-  height: 12px;
-  background: rgba(125, 166, 214, 0.44);
-  box-shadow:
-    62vw 44vh 0 2px rgba(125, 166, 214, 0.16),
-    54vw -8vh 0 4px rgba(150, 115, 85, 0.18),
-    -9vw 33vh 0 5px rgba(125, 166, 214, 0.18);
-}
-
-.hero-decor-bubble-two {
-  right: 28%;
-  top: 24%;
-  width: 16px;
-  height: 16px;
-  background: rgba(150, 115, 85, 0.66);
-}
-
-.hero-decor-bubble-three {
-  right: 33%;
-  bottom: 14%;
-  width: 30px;
-  height: 30px;
-  border: 3px solid rgba(176, 205, 237, 0.44);
-  box-shadow:
-    -46vw -38vh 0 -8px rgba(0, 45, 86, 0.16),
-    18vw -28vh 0 -10px rgba(125, 166, 214, 0.22);
 }
 
 .hero-logo {
-  position: relative;
   width: min(640px, 84vw);
   height: auto;
   object-fit: contain;
@@ -367,38 +169,14 @@ button {
 
 .primary-action {
   border: 3px solid var(--navy);
-  background:
-    linear-gradient(90deg, var(--brown) 0%, var(--brown) 100%) left / 0 100% no-repeat,
-    var(--navy);
+  background: var(--navy);
   color: var(--white);
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background-size 240ms ease,
-    border-color 160ms ease;
-}
-
-.primary-action:hover {
-  background-size: 100% 100%;
-  border-color: var(--brown);
 }
 
 .secondary-action {
   border: 3px solid var(--navy);
-  background:
-    linear-gradient(90deg, var(--navy) 0%, var(--navy) 100%) left / 0 100% no-repeat,
-    var(--white);
+  background: var(--white);
   color: #4c443f;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background-size 240ms ease,
-    color 160ms ease;
-}
-
-.secondary-action:hover {
-  background-size: 100% 100%;
-  color: var(--white);
 }
 
 .scroll-cue {
@@ -510,9 +288,7 @@ button {
   padding: 0 22px;
   border: 0;
   border-radius: 999px;
-  background:
-    linear-gradient(90deg, var(--navy) 0%, var(--navy) 100%) left / 0 100% no-repeat,
-    var(--white);
+  background: var(--white);
   color: var(--navy);
   font-size: 14px;
   font-weight: 900;
@@ -520,17 +296,11 @@ button {
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
-    background-size 220ms ease,
-    color 160ms ease;
+    background 160ms ease;
 }
 
 .category-chip.active {
   background: var(--navy);
-  color: var(--white);
-}
-
-.category-chip:hover {
-  background-size: 100% 100%;
   color: var(--white);
 }
 

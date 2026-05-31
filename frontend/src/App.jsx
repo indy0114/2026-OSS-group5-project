@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import Header from './components/common/Header.jsx';
@@ -14,6 +14,46 @@ import { clearToken, getMe, getToken, logout } from './api/auth.js';
 function App() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    if (!getToken()) {
+      return;
+    }
+
+    getMe()
+      .then((user) => {
+        setCurrentUser(user);
+        setIsLoggedIn(true);
+      })
+      .catch(() => {
+        clearToken();
+        setCurrentUser(null);
+        setIsLoggedIn(false);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    setCurrentUser(null);
+    setIsLoggedIn(false);
+    navigate('/');
+  };
+
+  const handleAuthSuccess = (user) => {
+    setCurrentUser(user);
+    setIsLoggedIn(true);
+    navigate('/');
+  };
+
+  const requireLogin = (nextPath) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+
+    navigate(nextPath);
+  };
 
   return (
     <div className="app">
@@ -24,15 +64,43 @@ function App() {
             <>
               <Header
                 isLoggedIn={isLoggedIn}
-                onLogout={() => { setIsLoggedIn(false); navigate('/'); }}
+                onLogout={handleLogout}
               />
-              <MainPage onCreateQuiz={() => navigate('/create')} />
+              <MainPage onCreateQuiz={() => requireLogin('/create')} />
             </>
           }
         />
         <Route
           path="/create"
-          element={<CreateQuizPage onCancel={() => navigate('/')} />}
+          element={
+            isLoggedIn ? (
+              <CreateQuizPage onCancel={() => navigate('/')} />
+            ) : (
+              <>
+                <Header
+                  isLoggedIn={isLoggedIn}
+                  onLogout={handleLogout}
+                />
+                <Login onLoginSuccess={handleAuthSuccess} />
+              </>
+            )
+          }
+        />
+        <Route
+          path="/add"
+          element={
+            isLoggedIn ? (
+              <AddQuizPage />
+            ) : (
+              <>
+                <Header
+                  isLoggedIn={isLoggedIn}
+                  onLogout={handleLogout}
+                />
+                <Login onLoginSuccess={handleAuthSuccess} />
+              </>
+            )
+          }
         />
         <Route
           path="/login"
@@ -40,9 +108,9 @@ function App() {
             <>
               <Header
                 isLoggedIn={isLoggedIn}
-                onLogout={() => { setIsLoggedIn(false); navigate('/'); }}
+                onLogout={handleLogout}
               />
-              <Login onLoginSuccess={() => { setIsLoggedIn(true); navigate('/'); }} />
+              <Login onLoginSuccess={handleAuthSuccess} />
             </>
           }
         />
@@ -52,9 +120,9 @@ function App() {
            <>
              <Header
                isLoggedIn={isLoggedIn}
-               onLogout={() => { setIsLoggedIn(false); navigate('/'); }}
+               onLogout={handleLogout}
              />
-             <Signup />
+             <Signup onSignupSuccess={handleAuthSuccess} />
            </>
           }
         />
@@ -65,9 +133,16 @@ function App() {
             <>
               <Header
                 isLoggedIn={isLoggedIn}
-                onLogout={() => { setIsLoggedIn(false); navigate('/'); }}
+                onLogout={handleLogout}
               />
-              <MyPage />
+              <MyPage
+                user={currentUser}
+                onAccountDeleted={() => {
+                  setCurrentUser(null);
+                  setIsLoggedIn(false);
+                  navigate('/');
+                }}
+              />
             </>
           }
         />

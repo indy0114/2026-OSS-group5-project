@@ -36,10 +36,17 @@ const TEXT = {
   timer: '문제 타이머',
 };
 
-const quizTypes = [
-  { id: 'video', label: TEXT.video, icon: 'video' },
-  { id: 'text', label: TEXT.text, icon: 'text' },
-  { id: 'image', label: TEXT.image, icon: 'image' },
+const categories = [
+  TEXT.categoryPlaceholder,
+  TEXT.music,
+  TEXT.commonSense,
+  TEXT.movie,
+  TEXT.game,
+  TEXT.food,
+  TEXT.sports,
+  TEXT.person,
+  TEXT.anime,
+  TEXT.etc,
 ];
 
 const timerOptions = [
@@ -80,7 +87,6 @@ function CreateHeader({ onCancel, onSave }) {
       <button className="header-logo create-header-logo" type="button" onClick={onCancel} aria-label={TEXT.home}>
         <img src={iconUrl} alt="" />
       </button>
-
       <nav className="header-actions" aria-label={TEXT.quizCreate}>
         <button className="pill-button compact" type="button" onClick={onCancel}>
           {TEXT.cancel}
@@ -90,53 +96,6 @@ function CreateHeader({ onCancel, onSave }) {
         </button>
       </nav>
     </header>
-  );
-}
-
-function TypeIcon({ type }) {
-  if (type === 'video') {
-    return (
-      <span className="type-icon video" aria-hidden="true">
-        <span />
-      </span>
-    );
-  }
-
-  if (type === 'text') {
-    return (
-      <span className="type-icon text" aria-hidden="true">
-        T
-      </span>
-    );
-  }
-
-  return (
-    <span className="type-icon image" aria-hidden="true">
-      <span />
-    </span>
-  );
-}
-
-function TypeStep({ selectedType, onSelect }) {
-  return (
-    <section className="create-type-panel" aria-label={TEXT.typeSelect}>
-      <h1>{TEXT.typeSelect}</h1>
-      <div className="create-panel-line" />
-
-      <div className="type-card-list">
-        {quizTypes.map((type) => (
-          <button
-            className={selectedType === type.id ? 'type-card selected' : 'type-card'}
-            key={type.id}
-            type="button"
-            onClick={() => onSelect(type.id)}
-          >
-            <TypeIcon type={type.icon} />
-            <span>{type.label}</span>
-          </button>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -325,21 +284,46 @@ function SettingsStep({ form, onChange, onSave }) {
         </div>
       </div>
 
-      <button className="panel-save-button" type="button">
+      <div className="create-field order-field">
+        <span className="order-label">
+          {TEXT.order}
+          <span className="order-info" aria-hidden="true">{'\u24D8'}</span>
+        </span>
+        <div className="order-card-grid">
+          {orderTypes.map((order) => (
+            <button
+              className={form.order === order.id ? 'order-card selected' : 'order-card'}
+              key={order.id}
+              type="button"
+              aria-pressed={form.order === order.id}
+              onClick={() => onChange('order', order.id)}
+            >
+              <span className="order-radio" aria-hidden="true">
+                <span />
+              </span>
+              <OrderIcon type={order.icon} />
+              <span className="order-text">
+                <span className="order-title">{order.title}</span>
+                <span className="order-desc">{order.desc}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button className="panel-save-button" type="button" onClick={onSave}>
         {TEXT.save}
       </button>
     </section>
   );
 }
 
-function CreateQuizPage({ onCancel }) {
-  const [step, setStep] = useState('type');
-  const [selectedType, setSelectedType] = useState('text');
+function CreateQuizPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     title: '',
     description: '',
     category: categories[0],
-    answerType: answerTypes[0],
     visibility: 'public',
     order: 'random',
     timeLimit: 20,
@@ -408,20 +392,9 @@ function CreateQuizPage({ onCancel }) {
  
   return (
     <div className="create-page">
-      <CreateHeader onCancel={onCancel} onSave={handleSave} />
-
-      <main className={`create-main create-main-${step}`}>
-        {step === 'type' ? (
-          <TypeStep
-            selectedType={selectedType}
-            onSelect={(type) => {
-              setSelectedType(type);
-              setStep('settings');
-            }}
-          />
-        ) : (
-          <SettingsStep form={form} onChange={updateForm} />
-        )}
+      <CreateHeader onCancel={handleCancel} onSave={handleSave} />
+      <main className="create-main create-main-settings">
+        <SettingsStep form={form} onChange={updateForm} onSave={handleSave} />
       </main>
     </div>
   );

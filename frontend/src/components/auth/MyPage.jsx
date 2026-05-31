@@ -24,14 +24,12 @@ const TEXT = {
   editError: '정보를 수정하지 못했습니다.',
 };
 
-function Accordion({title, open, onToggle, children}) {
-  return(
+function Accordion({ title, open, onToggle, children }) {
+  return (
     <div className={`mypage-accordion ${open ? 'open' : ''}`}>
-      <button className="mypage-accordion-header" onClick={onToggle}>
+      <button className="mypage-accordion-header" type="button" onClick={onToggle}>
         <span>{title}</span>
-        <span className="mypage-chevro">
-          {open ? <FaChevronUp /> : <FaChevronDown />}
-        </span>
+        <span className="mypage-chevro">{open ? <FaChevronUp /> : <FaChevronDown />}</span>
       </button>
       {open && <div className="mypage-accordion-body">{children}</div>}
     </div>
@@ -103,7 +101,7 @@ function UserInfo({ userInfo, onSave, onDeleteAccount }) {
       </div>
 
       <div className="mypage-info-actions">
-        <button className="mypage-btn danger" onClick={handleCancel}>
+        <button className="mypage-btn danger" type="button" onClick={onDeleteAccount}>
           {TEXT.deleteButton}
         </button>
 

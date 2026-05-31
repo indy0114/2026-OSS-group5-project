@@ -49,16 +49,6 @@ const categories = [
 function HeroSection({ onCreateQuiz }) {
   return (
     <section className="hero" aria-labelledby="home-title">
-      <span className="hero-decor hero-decor-pill" aria-hidden="true" />
-      <span className="hero-decor hero-decor-plus" aria-hidden="true" />
-      <span className="hero-decor hero-decor-ring hero-decor-ring-left" aria-hidden="true" />
-      <span className="hero-decor hero-decor-ring hero-decor-ring-right" aria-hidden="true" />
-      <span className="hero-decor hero-decor-dots hero-decor-dots-top" aria-hidden="true" />
-      <span className="hero-decor hero-decor-dots hero-decor-dots-bottom" aria-hidden="true" />
-      <span className="hero-decor hero-decor-stripes" aria-hidden="true" />
-      <span className="hero-decor hero-decor-bubble hero-decor-bubble-one" aria-hidden="true" />
-      <span className="hero-decor hero-decor-bubble hero-decor-bubble-two" aria-hidden="true" />
-      <span className="hero-decor hero-decor-bubble hero-decor-bubble-three" aria-hidden="true" />
       <h1 id="home-title" className="sr-only">
         Quizzly
       </h1>

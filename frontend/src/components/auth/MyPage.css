@@ -23,6 +23,16 @@
   margin: 0 auto;
 }
 
+.mypage-error {
+  margin: 0 0 14px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #ffe7e5;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 /* 아코디언 */
 .mypage-accordion {
   border: 1px solid var(--line);
@@ -173,6 +183,13 @@
 
 .mypage-btn.danger:hover {
   background: #c9302c;
+}
+
+.mypage-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .mypage-btn.small {
