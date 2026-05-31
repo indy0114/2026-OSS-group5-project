@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import hashlib
 import hmac
+import json
 import os
 import secrets
 import sqlite3
@@ -57,6 +58,21 @@ class UpdateMeRequest(BaseModel):
     email: EmailStr | None = None
     password: str | None = Field(default=None, min_length=6, max_length=128)
 
+class QuizCreateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=100)
+    description: str | None = None
+    category: str | None = None
+    thumbnail: str | None = None
+    # 'public' = 메인에 공개, 'private' = 본인만
+    visibility: str = "public"
+    # 'random' | 'sequential'
+    order_mode: str = "random"
+    tags: list[str] = Field(default_factory=list)
+    # 프론트 SolveQuizPage 가 기대하는 문제 배열을 그대로 받습니다.
+    # [{ id, type:'multiple'|'short', title, description, timeLimit,
+    #    options:[{id,text}], answer }, ...]
+    questions: list[dict] = Field(default_factory=list)
+
 def get_connection():
     INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(DB_PATH)
@@ -95,12 +111,33 @@ def init_db():
             user_id INTEGER NOT NULL,
             title TEXT NOT NULL,
             description TEXT,
+            category TEXT,
+            thumbnail TEXT,
+            visibility TEXT NOT NULL DEFAULT 'public',
+            order_mode TEXT NOT NULL DEFAULT 'random',
             tags TEXT,
+            questions TEXT NOT NULL DEFAULT '[]',
             created_at TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
             """
         )
+
+        # 기존 quizzes 테이블에 빠진 컬럼이 있으면 추가 (데이터 보존 마이그레이션)
+        existing_columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(quizzes)").fetchall()
+        }
+        column_migrations = {
+            "category": "ALTER TABLE quizzes ADD COLUMN category TEXT",
+            "thumbnail": "ALTER TABLE quizzes ADD COLUMN thumbnail TEXT",
+            "visibility": "ALTER TABLE quizzes ADD COLUMN visibility TEXT NOT NULL DEFAULT 'public'",
+            "order_mode": "ALTER TABLE quizzes ADD COLUMN order_mode TEXT NOT NULL DEFAULT 'random'",
+            "questions": "ALTER TABLE quizzes ADD COLUMN questions TEXT NOT NULL DEFAULT '[]'",
+        }
+        for column, sql in column_migrations.items():
+            if column not in existing_columns:
+                connection.execute(sql)
 
 
 @app.on_event("startup")
@@ -144,6 +181,28 @@ def row_to_user(row):
         "email": row["email"],
         "created_at": row["created_at"],
     }
+
+def row_to_quiz(row, include_questions=False):
+    keys = row.keys()
+    questions = json.loads(row["questions"]) if "questions" in keys and row["questions"] else []
+    quiz = {
+        "id": row["id"],
+        "user_id": row["user_id"] if "user_id" in keys else None,
+        "title": row["title"],
+        "description": row["description"],
+        "category": row["category"] if "category" in keys else None,
+        "thumbnail": row["thumbnail"] if "thumbnail" in keys else None,
+        "visibility": row["visibility"] if "visibility" in keys else "public",
+        "order_mode": row["order_mode"] if "order_mode" in keys else "random",
+        "tags": row["tags"].split(",") if ("tags" in keys and row["tags"]) else [],
+        "question_count": len(questions),
+        "created_at": row["created_at"],
+    }
+    if "author" in keys:
+        quiz["author"] = row["author"]
+    if include_questions:
+        quiz["questions"] = questions
+    return quiz
 
 
 def create_session(connection, user_id: int):
@@ -253,6 +312,76 @@ def logout(authorization: str | None = Header(default=None)):
     return {"message": "로그아웃되었습니다."}
 
 
+@app.post("/api/quizzes", status_code=status.HTTP_201_CREATED)
+def create_quiz(payload: QuizCreateRequest, user=Depends(get_current_user)):
+    tags_str = ",".join(t.strip() for t in payload.tags if t.strip())
+    with get_connection() as connection:
+        cursor = connection.execute(
+            """
+            INSERT INTO quizzes
+                (user_id, title, description, category, thumbnail,
+                 visibility, order_mode, tags, questions, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user["id"],
+                payload.title.strip(),
+                payload.description,
+                payload.category,
+                payload.thumbnail,
+                payload.visibility,
+                payload.order_mode,
+                tags_str,
+                json.dumps(payload.questions, ensure_ascii=False),
+                utc_now(),
+            ),
+        )
+        quiz_id = cursor.lastrowid
+        row = connection.execute(
+            """
+            SELECT quizzes.*, users.username AS author
+            FROM quizzes
+            JOIN users ON users.id = quizzes.user_id
+            WHERE quizzes.id = ?
+            """,
+            (quiz_id,),
+        ).fetchone()
+
+    return row_to_quiz(row, include_questions=True)
+
+@app.get("/api/quizzes")
+def list_quizzes():
+    # 메인페이지용: 공개(public) 퀴즈만, 최신순. 문제 본문은 제외(가벼움).
+    with get_connection() as connection:
+        rows = connection.execute(
+            """
+            SELECT quizzes.*, users.username AS author
+            FROM quizzes
+            JOIN users ON users.id = quizzes.user_id
+            WHERE quizzes.visibility = 'public'
+            ORDER BY quizzes.created_at DESC
+            """
+        ).fetchall()
+    return [row_to_quiz(row) for row in rows]
+
+@app.get("/api/quizzes/{quiz_id}")
+def get_quiz(quiz_id: int):
+    # 풀기 페이지용: 문제 본문 포함.
+    with get_connection() as connection:
+        row = connection.execute(
+            """
+            SELECT quizzes.*, users.username AS author
+            FROM quizzes
+            JOIN users ON users.id = quizzes.user_id
+            WHERE quizzes.id = ?
+            """,
+            (quiz_id,),
+        ).fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="퀴즈를 찾을 수 없습니다.")
+
+    return row_to_quiz(row, include_questions=True)
 
 @app.get("/api/users/me/quizzes")
 def get_my_quizzes(user=Depends(get_current_user)): 
@@ -278,6 +407,46 @@ def get_my_quizzes(user=Depends(get_current_user)):
             })
     return quizzes
 
+
+@app.patch("/api/quizzes/{quiz_id}")
+def update_quiz(quiz_id: int, payload: QuizCreateRequest, user=Depends(get_current_user)):
+    with get_connection() as connection:
+        existing = connection.execute(
+            "SELECT id FROM quizzes WHERE id = ? AND user_id = ?",
+            (quiz_id, user["id"]),
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="퀴즈를 찾을 수 없거나 수정 권한이 없습니다.")
+
+        tags_str = ",".join(t.strip() for t in payload.tags if t.strip())
+        connection.execute(
+            """
+            UPDATE quizzes SET
+                title = ?, description = ?, category = ?, thumbnail = ?,
+                visibility = ?, order_mode = ?, tags = ?, questions = ?
+            WHERE id = ?
+            """,
+            (
+                payload.title.strip(),
+                payload.description,
+                payload.category,
+                payload.thumbnail,
+                payload.visibility,
+                payload.order_mode,
+                tags_str,
+                json.dumps(payload.questions, ensure_ascii=False),
+                quiz_id,
+            ),
+        )
+        row = connection.execute(
+            """
+            SELECT quizzes.*, users.username AS author
+            FROM quizzes JOIN users ON users.id = quizzes.user_id
+            WHERE quizzes.id = ?
+            """,
+            (quiz_id,),
+        ).fetchone()
+    return row_to_quiz(row, include_questions=True)
 
 @app.delete("/api/quizzes/{quiz_id}")
 def delete_quiz(quiz_id: int, user=Depends(get_current_user)):
