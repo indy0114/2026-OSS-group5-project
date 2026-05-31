@@ -23,6 +23,15 @@ const TEXT = {
   goHome: '홈으로',
 };
 
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -42,9 +51,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     if (!id) return;
     getQuiz(id)
       .then((data) => {
-        setQuiz({
-          title: data.title,
-          questions: (data.questions || []).map((q) => ({
+        let questions = (data.questions || []).map((q) => ({
             id: String(q.id),
             type: q.type === 'multiple' ? 'multiple' : 'short',
             title: q.title,
@@ -52,8 +59,11 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
             timeLimit: q.time_limit ?? q.timeLimit ?? 20,
             options: q.options || [],
             answer: q.answer ?? '',
-          })),
-        });
+          }));
+        if (data.order_mode === 'random') {
+          questions = shuffle(questions);
+        }
+        setQuiz({ title: data.title, questions });
       })
       .catch((e) => setLoadError(e.message || '퀴즈를 불러오지 못했어요.'));
   }, [id]);
