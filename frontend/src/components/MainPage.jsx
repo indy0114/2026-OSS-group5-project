@@ -13,16 +13,18 @@ const TEXT = {
   search: '퀴즈 검색',
   placeholder: '검색어를 입력하세요.',
   sortLabel: '정렬',
-  sort: '정렬',
   latest: '최신순',
   name: '이름순',
   category: '카테고리',
-  commonSense: '상식',
-  photo: '사진',
-  movie: '영화',
   music: '음악',
+  commonSense: '상식',
+  movie: '영화',
+  game: '게임',
+  food: '음식',
   sports: '스포츠',
-  quizTitle: '퀴즈 제목',
+  person: '인물',
+  anime: '애니',
+  etc: '기타',
   multipleChoice: '객관식',
   shortAnswer: '주관식',
   loading: '퀴즈를 불러오는 중...',
@@ -31,12 +33,35 @@ const TEXT = {
   questionUnit: '문제',
 };
 
-const categories = [TEXT.all, TEXT.commonSense, TEXT.photo, TEXT.movie, TEXT.music, TEXT.sports];
+const categories = [
+  TEXT.all,
+  TEXT.music,
+  TEXT.commonSense,
+  TEXT.movie,
+  TEXT.game,
+  TEXT.food,
+  TEXT.sports,
+  TEXT.person,
+  TEXT.anime,
+  TEXT.etc,
+];
 
 function HeroSection({ onCreateQuiz }) {
   return (
     <section className="hero" aria-labelledby="home-title">
-      <h1 id="home-title" className="sr-only">Quizzly</h1>
+      <span className="hero-decor hero-decor-pill" aria-hidden="true" />
+      <span className="hero-decor hero-decor-plus" aria-hidden="true" />
+      <span className="hero-decor hero-decor-ring hero-decor-ring-left" aria-hidden="true" />
+      <span className="hero-decor hero-decor-ring hero-decor-ring-right" aria-hidden="true" />
+      <span className="hero-decor hero-decor-dots hero-decor-dots-top" aria-hidden="true" />
+      <span className="hero-decor hero-decor-dots hero-decor-dots-bottom" aria-hidden="true" />
+      <span className="hero-decor hero-decor-stripes" aria-hidden="true" />
+      <span className="hero-decor hero-decor-bubble hero-decor-bubble-one" aria-hidden="true" />
+      <span className="hero-decor hero-decor-bubble hero-decor-bubble-two" aria-hidden="true" />
+      <span className="hero-decor hero-decor-bubble hero-decor-bubble-three" aria-hidden="true" />
+      <h1 id="home-title" className="sr-only">
+        Quizzly
+      </h1>
       <img className="hero-logo" src={logoUrl} alt="Quizzly" />
       <div className="hero-actions">
         <button className="primary-action" type="button" onClick={onCreateQuiz}>
