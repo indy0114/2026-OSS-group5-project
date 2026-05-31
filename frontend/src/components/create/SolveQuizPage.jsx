@@ -89,7 +89,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   }, [submitted, isCorrect, current]);
 
   useEffect(() => {
-    if (view !== 'playing' || submitted || timeLimit === 0) return;
+    if (!quiz || view !== 'playing' || submitted || timeLimit === 0) return;
     setTimeLeft(timeLimit);
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
@@ -102,7 +102,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     }, 1000);
     return () => clearInterval(timerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index, view]);
+  }, [index, view, quiz]);
 
   useEffect(() => {
     if (timeLimit === 0) return;
