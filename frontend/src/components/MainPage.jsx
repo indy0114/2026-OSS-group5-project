@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoUrl from '../assets/quizzly-logo-cropped.png';
-import { getQuizzes } from '../api/quizzes.js';
+import { getQuizzes, toggleLike, getMyLikes } from '../api/quizzes.js';
 import './MainPage.css';
 
 const TEXT = {
@@ -46,6 +46,7 @@ const categories = [
   TEXT.etc,
 ];
 
+/* Hero Section */
 function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
   return (
     <section className="hero" aria-labelledby="home-title">
@@ -68,12 +69,28 @@ function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
   );
 }
 
-function QuizCard({ quiz, onClick }) {
+/* Heart Icon */
+function HeartIcon({ filled }) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path
+        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+        fill={filled ? '#ff3b5c' : 'none'}
+        stroke={filled ? '#ff3b5c' : 'rgba(255,255,255,0.9)'}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/* Quiz Card Section */
+function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
   return (
     <article className="quiz-card" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div
         className="thumbnail"
-        aria-hidden="true"
         style={
           quiz.thumbnail
             ? {
@@ -83,7 +100,17 @@ function QuizCard({ quiz, onClick }) {
               }
             : undefined
         }
-      />
+      >
+        <button
+          className={`like-btn${liked ? ' liked' : ''}`}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onLike(quiz.id); }}
+          aria-label={liked ? '좋아요 취소' : '좋아요'}
+        >
+          <HeartIcon filled={liked} />
+          <span className="like-count">{likeCount}</span>
+        </button>
+      </div>
       <div className="card-body">
         <h2>{quiz.title}</h2>
         <div className="card-meta">
@@ -99,6 +126,7 @@ function QuizCard({ quiz, onClick }) {
   );
 }
 
+/* Quiz Section */
 function QuizSection({
   activeCategory,
   onCategoryChange,
@@ -109,6 +137,9 @@ function QuizSection({
   quizzes,
   loading,
   error,
+  likedIds,
+  likeCounts,
+  onLike,
 }) {
   const navigate = useNavigate();
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -188,7 +219,14 @@ function QuizSection({
       ) : (
         <div className="quiz-grid">
           {quizzes.map((quiz) => (
-            <QuizCard quiz={quiz} key={quiz.id} onClick={() => navigate(`/solve/${quiz.id}`)} />
+            <QuizCard
+              quiz={quiz}
+              key={quiz.id}
+              onClick={() => navigate(`/solve/${quiz.id}`)}
+              liked={likedIds.has(quiz.id)}
+              likeCount={likeCounts[quiz.id] ?? quiz.likeCount ?? 0}
+              onLike={onLike}
+            />
           ))}
         </div>
       )}
@@ -196,16 +234,20 @@ function QuizSection({
   );
 }
 
-function MainPage({ onCreateQuiz }) {
+/* Main Section */
+function MainPage({ onCreateQuiz, isLoggedIn }) {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(TEXT.all);
   const [query, setQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('latest');
- 
+
   const [allQuizzes, setAllQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
- 
+
+  const [likedIds, setLikedIds] = useState(new Set());
+  const [likeCounts, setLikeCounts] = useState({});
+
   useEffect(() => {
     let alive = true;
     getQuizzes()
@@ -219,8 +261,12 @@ function MainPage({ onCreateQuiz }) {
           questionCount: q.question_count ?? 0,
           thumbnail: q.thumbnail || null,
           createdAt: q.created_at,
+          likeCount: q.like_count ?? 0,
         }));
         setAllQuizzes(mapped);
+        const counts = {};
+        mapped.forEach((q) => { counts[q.id] = q.likeCount; });
+        setLikeCounts(counts);
       })
       .catch((e) => {
         if (alive) setError(e.message || 'error');
@@ -232,6 +278,59 @@ function MainPage({ onCreateQuiz }) {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setLikedIds(new Set());
+      return;
+    }
+    getMyLikes()
+      .then(({ liked_ids }) => setLikedIds(new Set(liked_ids)))
+      .catch((err) => console.error('좋아요 목록 조회 실패:', err));
+  }, [isLoggedIn]);
+
+  const handleLike = (quizId) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+
+    const alreadyLiked = likedIds.has(quizId);
+    const prevCount = likeCounts[quizId] ?? 0;
+
+    // 낙관적 업데이트
+    setLikedIds((prev) => {
+      const next = new Set(prev);
+      if (alreadyLiked) next.delete(quizId);
+      else next.add(quizId);
+      return next;
+    });
+    setLikeCounts((prev) => ({
+      ...prev,
+      [quizId]: Math.max(0, prevCount + (alreadyLiked ? -1 : 1)),
+    }));
+
+    toggleLike(quizId)
+      .then(({ liked, like_count }) => {
+        setLikedIds((prev) => {
+          const next = new Set(prev);
+          if (liked) next.add(quizId);
+          else next.delete(quizId);
+          return next;
+        });
+        setLikeCounts((prev) => ({ ...prev, [quizId]: like_count }));
+      })
+      .catch(() => {
+        // 실패 시 원복
+        setLikedIds((prev) => {
+          const next = new Set(prev);
+          if (alreadyLiked) next.add(quizId);
+          else next.delete(quizId);
+          return next;
+        });
+        setLikeCounts((prev) => ({ ...prev, [quizId]: prevCount }));
+      });
+  };
  
   const handleSolveRandomQuiz = () => {
     if (allQuizzes.length === 0) {
@@ -274,6 +373,9 @@ function MainPage({ onCreateQuiz }) {
         quizzes={filteredQuizzes}
         loading={loading}
         error={error}
+        likedIds={likedIds}
+        likeCounts={likeCounts}
+        onLike={handleLike}
       />
     </main>
   );

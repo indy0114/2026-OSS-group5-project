@@ -69,3 +69,25 @@ export async function getQuiz(id) {
   const res = await fetch(`${API_BASE}/api/quizzes/${id}`);
   return handle(res);
 }
+
+export async function toggleLike(quizId) {
+  const res = await fetch(`${API_BASE}/api/quizzes/${quizId}/like`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle(res);
+}
+
+export async function getMyLikes() {
+  const res = await fetch(`${API_BASE}/api/users/me/likes`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle(res);
+}
+
+export async function getLikedQuizzes() {
+  const res = await fetch(`${API_BASE}/api/users/me/liked-quizzes`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle(res);
+}

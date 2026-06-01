@@ -321,10 +321,55 @@ button {
 }
 
 .thumbnail {
+  position: relative;
   height: 178px;
   margin: 12px 12px 0;
   border-radius: 9px;
   background: var(--muted);
+  overflow: hidden;
+}
+
+/* 좋아요 버튼 */
+.like-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+  z-index: 1;
+}
+
+.like-btn:hover {
+  background: rgba(0, 0, 0, 0.65);
+  transform: scale(1.08);
+}
+
+.like-btn:active {
+  transform: scale(0.94);
+}
+
+.like-btn.liked {
+  background: rgba(255, 59, 92, 0.18);
+}
+
+.like-btn.liked:hover {
+  background: rgba(255, 59, 92, 0.32);
+}
+
+.like-count {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
 }
 
 .card-body {
