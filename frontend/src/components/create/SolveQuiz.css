@@ -73,15 +73,23 @@
   overflow: hidden;
 }
 
+@keyframes solve-timer-countdown {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
 .solve-timer-fill {
   height: 100%;
   background: var(--navy-soft);
   border-radius: 2px;
-  transition: width 1s linear;
+  animation-name: solve-timer-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
 }
 
 .solve-timer-fill.urgent {
   background: var(--wrong);
+  transition: background-color 0.3s;
 }
 
 /* ── 문제 카드 ────────────────────── */
@@ -115,6 +123,149 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--muted);
+}
+
+/* ── 미디어 ───────────────────────── */
+.solve-media {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.solve-media-photo {
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.solve-media-video-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.solve-media-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.solve-media-video {
+  width: 100%;
+  max-height: 360px;
+  border-radius: 12px;
+}
+
+.solve-media-audio {
+  width: 100%;
+}
+
+.solve-media-photo-error {
+  margin: 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* YouTube 음악 플레이어 — iframe은 body 오프스크린에 마운트, 여기엔 커스텀 UI만 */
+.solve-media-yt-audio-wrap {
+  position: relative;
+  height: 72px;
+  border-radius: 20px;
+  background: var(--navy);
+}
+
+.solve-media-yt-audio-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  border-radius: 20px;
+  background: rgba(0, 45, 86, 0.88);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* 재생/정지 버튼 */
+.solve-media-yt-audio-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.solve-media-yt-audio-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.solve-media-yt-audio-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.solve-media-yt-audio-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* 파형 막대 */
+@keyframes yt-audio-wave {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.solve-media-yt-audio-waves {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 24px;
+  flex: 1;
+}
+
+.solve-media-yt-audio-waves i {
+  display: block;
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.45);
+  transform-origin: bottom;
+  transform: scaleY(0.3);
+  font-style: normal;
+}
+
+.solve-media-yt-audio-waves.active i {
+  background: rgba(255, 255, 255, 0.8);
+  animation: yt-audio-wave 0.9s ease-in-out infinite;
+}
+
+.solve-media-yt-audio-waves.active i:nth-child(2) { animation-delay: 0.15s; }
+.solve-media-yt-audio-waves.active i:nth-child(3) { animation-delay: 0.30s; }
+.solve-media-yt-audio-waves.active i:nth-child(4) { animation-delay: 0.45s; }
+.solve-media-yt-audio-waves.active i:nth-child(5) { animation-delay: 0.60s; }
+
+.solve-media-yt-audio-status {
+  white-space: nowrap;
 }
 
 /* ── 객관식 ───────────────────────── */
