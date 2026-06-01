@@ -13,14 +13,36 @@ const TEXT = {
   loginLink: '이미 계정이 있으신가요?',
   loginLinkBold: '로그인',
   emptyError: '모든 항목을 입력해주세요.',
+  checkId: '중복 확인',
+  idAvailable: '사용 가능한 아이디입니다.',
+  idTaken: '이미 사용 중인 아이디입니다.',
+  idRequired: '아이디를 입력해주세요.',
 };
 
 function Signup({ onSignupSuccess }) {
   const [form, setForm] = useState({ id: '', email: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [idStatus, setIdStatus] = useState(null);
 
-  const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+  const handleChange = (field) => (e) => {
+    setForm({ ...form, [field]: e.target.value });
+    if (field === 'id') setIdStatus(null);
+  };
+
+  const handleCheckId = async () => {
+    if (!form.id.trim()) {
+      setIdStatus('empty');
+      return;
+    }
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/auth/check-username?username=${encodeURIComponent(form.id.trim())}`);
+      const data = await res.json();
+      setIdStatus(data.available ? 'available' : 'taken');
+    } catch {
+      setIdStatus(null);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!form.id.trim() || !form.email.trim() || !form.password.trim()) {
@@ -53,22 +75,39 @@ function Signup({ onSignupSuccess }) {
         <img className="signup-logo" src={logoUrl} alt="Quizzly" />
 
         <div className="signup-fields">
-          {[
-            { field: 'id', placeholder: TEXT.idPlaceholder, type: 'text' },
-            { field: 'email', placeholder: TEXT.emailPlaceholder, type: 'email' },
-            { field: 'password', placeholder: TEXT.passwordPlaceholder, type: 'password' },
-          ].map(({ field, placeholder, type }) => (
+          <div className="signup-id-row">
             <input
-              key={field}
-              type={type}
-              value={form[field]}
-              onChange={handleChange(field)}
+              type="text"
+              value={form.id}
+              onChange={handleChange('id')}
               onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              autoFocus={field === 'id'}
+              placeholder={TEXT.idPlaceholder}
+              autoFocus
               disabled={loading}
             />
-          ))}
+            <button type="button" className="signup-check-btn" onClick={handleCheckId} disabled={loading}>
+              {TEXT.checkId}
+            </button>
+          </div>
+          {idStatus === 'available' && <p className="signup-id-msg available">{TEXT.idAvailable}</p>}
+          {idStatus === 'taken' && <p className="signup-id-msg taken">{TEXT.idTaken}</p>}
+          {idStatus === 'empty' && <p className="signup-id-msg taken">{TEXT.idRequired}</p>}
+          <input
+            type="email"
+            value={form.email}
+            onChange={handleChange('email')}
+            onKeyDown={handleKeyDown}
+            placeholder={TEXT.emailPlaceholder}
+            disabled={loading}
+          />
+          <input
+            type="password"
+            value={form.password}
+            onChange={handleChange('password')}
+            onKeyDown={handleKeyDown}
+            placeholder={TEXT.passwordPlaceholder}
+            disabled={loading}
+          />
         </div>
 
         {errorMessage && <p className="signup-error">{errorMessage}</p>}

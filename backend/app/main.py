@@ -263,6 +263,15 @@ def health_check():
     return {"status": "ok"}
 
 
+@app.get("/api/auth/check-username")
+def check_username(username: str):
+    with get_connection() as connection:
+        existing = connection.execute(
+            "SELECT id FROM users WHERE username = ?", (username.strip(),)
+        ).fetchone()
+    return {"available": existing is None}
+
+
 @app.post("/api/auth/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 def signup(payload: SignupRequest):
     username = payload.username.strip()

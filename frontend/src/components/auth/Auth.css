@@ -215,3 +215,45 @@
 .signup-footer a:hover {
   text-decoration: underline;
 }
+
+.signup-id-row {
+  display: flex;
+  gap: 8px;
+}
+
+.signup-id-row input {
+  flex: 1;
+}
+
+.signup-check-btn {
+  white-space: nowrap;
+  padding: 0 14px;
+  height: 47px;
+  border: 2px solid #002d56;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #002d56;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.signup-check-btn:hover {
+  background: #002d56;
+  color: #ffffff;
+}
+
+.signup-id-msg {
+  margin: -8px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.signup-id-msg.available {
+  color: #1f9d57;
+}
+
+.signup-id-msg.taken {
+  color: #d83a3a;
+}
