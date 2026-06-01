@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import Header from './components/common/Header.jsx';
 import Footer from './components/common/Footer.jsx';
+import ScrollToTop from './components/common/ScrollToTop.jsx';
 import MainPage from './components/MainPage.jsx';
 import Login from './components/auth/Login.jsx';
 import Signup from './components/auth/Signup.jsx';
@@ -62,6 +63,7 @@ function App() {
 
   return (
     <div className="app">
+      <ScrollToTop />
       <Routes>
         <Route
           path="/"

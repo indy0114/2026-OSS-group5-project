@@ -11,22 +11,27 @@ const TEXT = {
   userMenu: '사용자 메뉴',
 };
 
+const goTo = (navigate, path) => {
+  navigate(path);
+  window.scrollTo(0, 0);
+};
+
 function Header({ isLoggedIn, onLogout }) {
   const navigate = useNavigate();
 
   return (
     <header className="site-header">
-      <Link className="header-logo" to="/" aria-label={TEXT.home}>
+      <Link className="header-logo" to="/" aria-label={TEXT.home} onClick={() => window.scrollTo(0, 0)}>
         <img src={iconUrl} alt="" />
       </Link>
 
       <nav className="header-actions" aria-label={TEXT.userMenu}>
         {isLoggedIn ? (
           <>
-            <button className="pill-button compact" type="button" onClick={() => navigate('/create')}>
+            <button className="pill-button compact" type="button" onClick={() => goTo(navigate, '/create')}>
               {TEXT.createQuiz}
             </button>
-            <button className="pill-button compact" type="button" onClick={() => navigate('/mypage')}>
+            <button className="pill-button compact" type="button" onClick={() => goTo(navigate, '/mypage')}>
               {TEXT.myPage}
             </button>
             <button className="pill-button compact" type="button" onClick={onLogout}>
@@ -35,10 +40,10 @@ function Header({ isLoggedIn, onLogout }) {
           </>
         ) : (
           <>
-            <button className="pill-button compact" type="button" onClick={() => navigate('/login')}>
+            <button className="pill-button compact" type="button" onClick={() => goTo(navigate, '/login')}>
               {TEXT.login}
             </button>
-            <button className="pill-button compact" type="button" onClick={() => navigate('/signup')}>
+            <button className="pill-button compact" type="button" onClick={() => goTo(navigate, '/signup')}>
               {TEXT.signup}
             </button>
           </>

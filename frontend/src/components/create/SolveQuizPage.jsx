@@ -533,9 +533,6 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
 
         {/* 문제 카드 */}
         <div className="solve-card">
-          <span className="solve-type-badge">
-            {current.type === 'multiple' ? '객관식' : '주관식'}
-          </span>
           <h1 className="solve-question-title">{current.title}</h1>
           {current.description && (
             <p className="solve-question-desc">{current.description}</p>
