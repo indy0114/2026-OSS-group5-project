@@ -465,8 +465,9 @@
 /* ── 하단 버튼 ────────────────────── */
 .solve-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 12px;
   margin-top: 26px;
 }
 
