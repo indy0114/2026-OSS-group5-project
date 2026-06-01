@@ -217,6 +217,7 @@ function LikedQuizList({ quizzes }) {
         <div className="mypage-quiz-tags">
           {quiz.category && <span className="mypage-quiz-tag">{quiz.category}</span>}
           <span className="mypage-quiz-tag">{quiz.question_count}문제</span>
+          {quiz.author && <span className="mypage-quiz-tag">{quiz.author}</span>}
           <span className="mypage-quiz-tag liked-count-tag">♥ {quiz.like_count}</span>
         </div>
         {quiz.description && <p className="mypage-quiz-desc">{quiz.description}</p>}
