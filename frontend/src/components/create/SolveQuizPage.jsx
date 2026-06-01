@@ -381,6 +381,14 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   const handleNext = () => {
     questionStates.current[index] = { selected, inputValue, submitted };
     if (index + 1 >= total) {
+      const allAnswered = questions.every((_, i) => {
+        const state = questionStates.current[i];
+        return state?.submitted;
+      });
+      if (!allAnswered) {
+        alert('아직 풀지 않은 문제가 있어요!');
+        return;
+      }
       setView('result');
       return;
     }
