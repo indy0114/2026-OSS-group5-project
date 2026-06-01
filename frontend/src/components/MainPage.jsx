@@ -119,6 +119,7 @@ function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
             {quiz.questionCount}
             {TEXT.questionUnit}
           </span>
+          {quiz.author && <span>{quiz.author}</span>}
         </div>
         <p>{quiz.description}</p>
       </div>
@@ -262,6 +263,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
           thumbnail: q.thumbnail || null,
           createdAt: q.created_at,
           likeCount: q.like_count ?? 0,
+          author: q.author || '',
         }));
         setAllQuizzes(mapped);
         const counts = {};
