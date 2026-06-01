@@ -23,6 +23,179 @@ const TEXT = {
   goHome: '홈으로',
 };
 
+function getYouTubeId(url) {
+  try {
+    const trimmed = url.trim();
+    const u = new URL(trimmed);
+    if (u.hostname.includes('youtube.com')) {
+      const v = u.searchParams.get('v');
+      if (v) return v;
+      // /shorts/ID, /live/ID, /embed/ID
+      const m = u.pathname.match(/\/(?:shorts|live|embed)\/([a-zA-Z0-9_-]{11})/);
+      if (m) return m[1];
+    }
+    if (u.hostname === 'youtu.be') {
+      const id = u.pathname.slice(1).split('?')[0];
+      if (id) return id;
+    }
+  } catch {}
+  return null;
+}
+
+function YoutubeEmbed({ ytId }) {
+  return (
+    <div className="solve-media-video-wrap">
+      <iframe
+        className="solve-media-iframe"
+        src={`https://www.youtube.com/embed/${ytId}?autoplay=1`}
+        title="YouTube video"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
+    </div>
+  );
+}
+
+function YoutubeAudioPlayer({ ytId }) {
+  const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const iframeRef = useRef(null);
+
+  // ytId가 바뀌면 이전 iframe 제거 + 상태 초기화
+  useEffect(() => {
+    setPlaying(false);
+    setLoading(false);
+    return () => {
+      if (iframeRef.current) {
+        iframeRef.current.remove();
+        iframeRef.current = null;
+      }
+    };
+  }, [ytId]);
+
+  // YouTube postMessage 상태 동기화
+  useEffect(() => {
+    const onMsg = ({ data }) => {
+      if (typeof data !== 'string') return;
+      try {
+        const d = JSON.parse(data);
+        if (d.event === 'onStateChange') setPlaying(d.info === 1);
+      } catch {}
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const toggle = () => {
+    if (!iframeRef.current) {
+      // 첫 클릭: 사용자 인터랙션 직후라 autoplay 차단 없음
+      setLoading(true);
+      const iframe = document.createElement('iframe');
+      iframe.allow = 'autoplay; encrypted-media';
+      iframe.style.cssText =
+        'position:fixed;top:-9999px;left:-9999px;width:480px;height:270px;border:0;';
+      iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&rel=0&origin=${encodeURIComponent(window.location.origin)}`;
+      iframe.addEventListener('load', () => {
+        setLoading(false);
+        setPlaying(true);
+      });
+      document.body.appendChild(iframe);
+      iframeRef.current = iframe;
+      return;
+    }
+
+    const postCmd = (func) =>
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func, args: [] }),
+        'https://www.youtube.com'
+      );
+
+    if (playing) {
+      postCmd('pauseVideo');
+      setPlaying(false);
+    } else {
+      postCmd('playVideo');
+      setPlaying(true);
+    }
+  };
+
+  return (
+    <div className="solve-media-yt-audio-wrap">
+      <div className="solve-media-yt-audio-overlay">
+        <button
+          className="solve-media-yt-audio-btn"
+          type="button"
+          onClick={toggle}
+          disabled={loading}
+          aria-label={playing ? '일시정지' : '재생'}
+        >
+          {playing ? (
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+              <rect x="6" y="5" width="4" height="14" rx="1" />
+              <rect x="14" y="5" width="4" height="14" rx="1" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          )}
+        </button>
+        <div className={`solve-media-yt-audio-waves${playing ? ' active' : ''}`}>
+          <i /><i /><i /><i /><i />
+        </div>
+        <span className="solve-media-yt-audio-status">
+          {loading ? '로딩 중...' : playing ? '음악 재생 중' : '재생 버튼을 누르세요'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function QuestionMedia({ media }) {
+  const [photoError, setPhotoError] = useState(false);
+
+  const photo = media?.photo || null;
+  const video = media?.video || null;
+  const audio = media?.audio || null;
+
+  useEffect(() => {
+    setPhotoError(false);
+  }, [photo]);
+
+  if (!photo && !video && !audio) return null;
+
+  const videoYtId = video && !video.startsWith('data:') ? getYouTubeId(video) : null;
+  const audioYtId = audio && !audio.startsWith('data:') ? getYouTubeId(audio) : null;
+
+  return (
+    <div className="solve-media">
+      {photo && (
+        photoError ? (
+          <p className="solve-media-photo-error">이미지를 불러올 수 없습니다. 링크가 올바른지 확인해주세요.</p>
+        ) : (
+          <img
+            className="solve-media-photo"
+            src={photo}
+            alt="문제 이미지"
+            onError={() => setPhotoError(true)}
+          />
+        )
+      )}
+      {video && (
+        videoYtId
+          ? <YoutubeEmbed ytId={videoYtId} />
+          : <video className="solve-media-video" controls src={video} />
+      )}
+      {audio && (
+        audioYtId
+          ? <YoutubeAudioPlayer ytId={audioYtId} />
+          : <audio className="solve-media-audio" controls src={audio} />
+      )}
+    </div>
+  );
+}
+
 function shuffle(arr) {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -59,6 +232,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
             timeLimit: q.time_limit ?? q.timeLimit ?? 20,
             options: q.options || [],
             answer: q.answer ?? '',
+            media: q.media || null,
           }));
         if (data.order_mode === 'random') {
           questions = shuffle(questions);
@@ -90,16 +264,17 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
 
   useEffect(() => {
     if (!quiz || view !== 'playing' || submitted || timeLimit === 0) return;
+    const deadline = Date.now() + timeLimit * 1000;
     setTimeLeft(timeLimit);
     timerRef.current = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(timerRef.current);
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
+      const remaining = Math.ceil((deadline - Date.now()) / 1000);
+      if (remaining <= 0) {
+        clearInterval(timerRef.current);
+        setTimeLeft(0);
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 200);
     return () => clearInterval(timerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, view, quiz]);
@@ -219,8 +394,12 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
           {timeLimit > 0 && (
             <div className="solve-timer-track">
               <div
-                className={`solve-timer-fill ${timeLeft <= 5 ? 'urgent' : ''}`}
-                style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
+                key={`timer-${index}`}
+                className={`solve-timer-fill${timeLeft <= 5 ? ' urgent' : ''}`}
+                style={{
+                  animationDuration: `${timeLimit}s`,
+                  animationPlayState: submitted ? 'paused' : 'running',
+                }}
               />
             </div>
           )}
@@ -235,6 +414,8 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
           {current.description && (
             <p className="solve-question-desc">{current.description}</p>
           )}
+
+          <QuestionMedia media={current.media} />
 
           {/* 객관식 */}
           {current.type === 'multiple' && (

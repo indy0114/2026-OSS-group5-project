@@ -136,29 +136,39 @@ function ObjectiveIcon() {
 }
 
 /* ---------- 미디어 첨부 카드 (파일 + 링크) ---------- */
-function MediaCard({ icon, label, accept, media, onChangeMedia }) {
+function MediaCard({ icon, label, accept, media, onChangeMedia, showImagePreview }) {
   const inputRef = useRef(null);
-  // media: { file: File|null, link: string }
+  const [previewError, setPreviewError] = useState(false);
+  // media: { file: File|null, link: string, dataUrl: string|null }
 
   const handlePick = (event) => {
     const selected = event.target.files[0];
     if (!selected) return;
     if (selected.size > 50 * 1024 * 1024) {
-      alert('파일 크기가 50MB를 초과합니다.');
+      alert('파일 크기가 50MB를 초과합니다. 50MB 이하의 파일을 선택해주세요.');
       event.target.value = '';
       return;
     }
-    onChangeMedia({ ...media, file: selected });
+    onChangeMedia({ ...media, file: selected, dataUrl: null });
   };
 
   const handleRemoveFile = () => {
-    onChangeMedia({ ...media, file: null });
+    onChangeMedia({ ...media, file: null, dataUrl: null });
     if (inputRef.current) inputRef.current.value = '';
   };
 
+  const handleRemoveDataUrl = () => {
+    onChangeMedia({ ...media, dataUrl: null });
+  };
+
   const handleLinkChange = (event) => {
+    setPreviewError(false);
     onChangeMedia({ ...media, link: event.target.value });
   };
+
+  const hasFile = !!media.file;
+  const hasDataUrl = !!media.dataUrl;
+  const showLinkPreview = showImagePreview && !hasFile && !hasDataUrl && media.link && !previewError;
 
   return (
     <div className="media-card">
@@ -173,9 +183,14 @@ function MediaCard({ icon, label, accept, media, onChangeMedia }) {
         onChange={handlePick}
       />
 
-      {media.file ? (
+      {hasFile ? (
         <button className="media-file-chip" type="button" onClick={handleRemoveFile} title={media.file.name}>
           <span className="media-file-name">{media.file.name}</span>
+          <span className="media-file-x">✕</span>
+        </button>
+      ) : hasDataUrl ? (
+        <button className="media-file-chip" type="button" onClick={handleRemoveDataUrl}>
+          <span className="media-file-name">파일 첨부됨</span>
           <span className="media-file-x">✕</span>
         </button>
       ) : (
@@ -184,13 +199,27 @@ function MediaCard({ icon, label, accept, media, onChangeMedia }) {
         </button>
       )}
 
-      <input
-        className="media-link-input"
-        type="url"
-        value={media.link}
-        onChange={handleLinkChange}
-        placeholder={TEXT.linkPlaceholder}
-      />
+      {!hasDataUrl && (
+        <input
+          className="media-link-input"
+          type="url"
+          value={media.link}
+          onChange={handleLinkChange}
+          placeholder={TEXT.linkPlaceholder}
+        />
+      )}
+
+      {showLinkPreview && (
+        <img
+          className="media-link-preview"
+          src={media.link}
+          alt="미리보기"
+          onError={() => setPreviewError(true)}
+        />
+      )}
+      {showImagePreview && !hasFile && !hasDataUrl && media.link && previewError && (
+        <span className="media-link-preview-error">이미지를 불러올 수 없는 URL입니다.</span>
+      )}
     </div>
   );
 }
@@ -310,6 +339,7 @@ function SlideDetailView({ slide, onChange, onSaveSlide, onCancel }) {
                   accept="image/*"
                   media={slide.photo}
                   onChangeMedia={(value) => onChange('photo', value)}
+                  showImagePreview
                 />
                 <MediaCard
                   icon={<VideoIcon />}
@@ -479,30 +509,68 @@ function validateSlide(slide) {
   return null;
 }
 
-function slideToQuestion(slide, timeLimit) {
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function slideToQuestion(slide, timeLimit) {
   const base = {
     id: String(slide.id),
     title: slide.title.trim(),
     description: (slide.desc || '').trim(),
     timeLimit: timeLimit ?? 20,
   };
- 
+
+  const media = {};
+
+  if (slide.photo.file) {
+    media.photo = await readFileAsDataUrl(slide.photo.file);
+  } else if (slide.photo.dataUrl) {
+    media.photo = slide.photo.dataUrl;
+  } else if (slide.photo.link) {
+    media.photo = slide.photo.link;
+  }
+
+  if (slide.video.file) {
+    media.video = await readFileAsDataUrl(slide.video.file);
+  } else if (slide.video.dataUrl) {
+    media.video = slide.video.dataUrl;
+  } else if (slide.video.link) {
+    media.video = slide.video.link;
+  }
+
+  if (slide.audio.file) {
+    media.audio = await readFileAsDataUrl(slide.audio.file);
+  } else if (slide.audio.dataUrl) {
+    media.audio = slide.audio.dataUrl;
+  } else if (slide.audio.link) {
+    media.audio = slide.audio.link;
+  }
+
+  const mediaEntry = Object.keys(media).length > 0 ? { media } : {};
+
   if (slide.type === 'objective') {
     // 비어있지 않은 보기만 사용. id 는 원래 인덱스를 유지 → correctList 와 매칭 보존
     const options = slide.answers
       .map((text, index) => ({ id: String(index), text: text.trim() }))
       .filter((option) => option.text !== '');
     const correctIds = slide.correctList.map((index) => String(index));
- 
+
     return {
       ...base,
       type: 'multiple',
       options,
       answer: correctIds[0] ?? null, // 대표 정답 (단일 선택 호환)
       answers: correctIds, // 복수 정답 전체 보존
+      ...mediaEntry,
     };
   }
- 
+
   // 주관식
   const accepted = slide.answers.map((answer) => answer.trim()).filter(Boolean);
   return {
@@ -510,6 +578,7 @@ function slideToQuestion(slide, timeLimit) {
     type: 'short',
     answer: accepted[0] ?? '', // 대표 정답
     answers: accepted, // 허용 답변 전체 보존
+    ...mediaEntry,
   };
 }
 
@@ -521,25 +590,32 @@ function createSlide() {
     complete: false,
     title: '',
     desc: '',
-    photo: { file: null, link: '' },
-    video: { file: null, link: '' },
-    audio: { file: null, link: '' },
+    photo: { file: null, link: '', dataUrl: null },
+    video: { file: null, link: '', dataUrl: null },
+    audio: { file: null, link: '', dataUrl: null },
     type: 'subjective',
     answers: [''],
     correctList: [],
   };
 }
 
+function parseMediaField(value) {
+  if (!value) return { file: null, link: '', dataUrl: null };
+  if (value.startsWith('data:')) return { file: null, link: '', dataUrl: value };
+  return { file: null, link: value, dataUrl: null };
+}
+
 function questionToSlide(question) {
   slideSeq += 1;
+  const m = question.media || {};
   const base = {
     id: slideSeq,
     complete: true,
     title: question.title || '',
     desc: question.description || '',
-    photo: { file: null, link: '' },
-    video: { file: null, link: '' },
-    audio: { file: null, link: '' },
+    photo: parseMediaField(m.photo),
+    video: parseMediaField(m.video),
+    audio: parseMediaField(m.audio),
   };
 
   if (question.type === 'multiple') {
@@ -649,7 +725,7 @@ function AddQuizPage() {
     }
     const draft = JSON.parse(draftRaw);
  
-    const questions = slides.map((slide) => slideToQuestion(slide, draft.timeLimit));
+    const questions = await Promise.all(slides.map((slide) => slideToQuestion(slide, draft.timeLimit)));
  
     setSaving(true);
     try {

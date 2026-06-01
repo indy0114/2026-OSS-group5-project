@@ -663,6 +663,24 @@
   font-size: 11px;
 }
 
+.media-link-preview {
+  width: 100%;
+  max-height: 80px;
+  object-fit: contain;
+  border-radius: 6px;
+  margin-top: 4px;
+  background: #f4f6f9;
+}
+
+.media-link-preview-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #c0392b;
+  text-align: center;
+}
+
 /* 답변 삭제 버튼 비활성(최소 1개 유지) */
 .answer-delete:disabled {
   opacity: 0.35;
