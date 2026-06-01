@@ -46,7 +46,7 @@ const categories = [
   TEXT.etc,
 ];
 
-function HeroSection({ onCreateQuiz }) {
+function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
   return (
     <section className="hero" aria-labelledby="home-title">
       <h1 id="home-title" className="sr-only">
@@ -57,7 +57,7 @@ function HeroSection({ onCreateQuiz }) {
         <button className="primary-action" type="button" onClick={onCreateQuiz}>
           {TEXT.makeQuiz}
         </button>
-        <button className="secondary-action" type="button">
+        <button className="secondary-action" type="button" onClick={onSolveRandomQuiz}>
           {TEXT.solveQuiz}
         </button>
       </div>
@@ -197,6 +197,7 @@ function QuizSection({
 }
 
 function MainPage({ onCreateQuiz }) {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(TEXT.all);
   const [query, setQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('latest');
@@ -232,6 +233,16 @@ function MainPage({ onCreateQuiz }) {
     };
   }, []);
  
+  const handleSolveRandomQuiz = () => {
+    if (allQuizzes.length === 0) {
+      alert('아직 등록된 퀴즈가 없어요. 첫 퀴즈를 만들어보세요!');
+      return;
+    }
+    const randomIndex = Math.floor(Math.random() * allQuizzes.length);
+    const randomQuiz = allQuizzes[randomIndex];
+    navigate(`/solve/${randomQuiz.id}`);
+  };
+ 
   const filteredQuizzes = useMemo(() => {
     const visible = allQuizzes.filter((quiz) => {
       const matchesCategory = activeCategory === TEXT.all || quiz.category === activeCategory;
@@ -252,7 +263,7 @@ function MainPage({ onCreateQuiz }) {
  
   return (
     <main>
-      <HeroSection onCreateQuiz={onCreateQuiz} />
+      <HeroSection onCreateQuiz={onCreateQuiz} onSolveRandomQuiz={handleSolveRandomQuiz} />
       <QuizSection
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
