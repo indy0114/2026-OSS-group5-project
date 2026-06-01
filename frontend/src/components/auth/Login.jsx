@@ -1,38 +1,45 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import logoUrl from '../../assets/quizzly-logo-cropped.png';
+import { login } from '../../api/auth.js';
 import './Auth.css';
 
 const TEXT = {
-  idPlaceholder: '이메일',
+  idPlaceholder: '아이디',
   passwordPlaceholder: '비밀번호',
   loginButton: '로그인',
+  loadingButton: '로그인 중...',
   signupLink: '계정이 없으신가요?',
   signupLinkBold: '회원가입',
   emptyError: '아이디와 비밀번호를 모두 입력해주세요.',
 };
 
 function Login({ onLoginSuccess }) {
-  const navigate = useNavigate();
   const [form, setForm] = useState({ id: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.id.trim() || !form.password.trim()) {
       setErrorMessage(TEXT.emptyError);
       return;
     }
 
     setErrorMessage('');
+    setLoading(true);
 
-    if (typeof onLoginSuccess === 'function') {
-      onLoginSuccess();
-      return;
+    try {
+      const user = await login({ id: form.id.trim(), password: form.password });
+      if (typeof onLoginSuccess === 'function') {
+        onLoginSuccess(user);
+      }
+    } catch (err) {
+      setErrorMessage(err.message || '로그인에 실패했습니다.');
+    } finally {
+      setLoading(false);
     }
-
-    navigate('/');
   };
 
   const handleKeyDown = (e) => {
@@ -57,14 +64,15 @@ function Login({ onLoginSuccess }) {
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               autoFocus={field === 'id'}
+              disabled={loading}
             />
           ))}
         </div>
 
         {errorMessage && <p className="signup-error">{errorMessage}</p>}
 
-        <button type="button" className="signup-button" onClick={handleSubmit}>
-          {TEXT.loginButton}
+        <button type="button" className="signup-button" onClick={handleSubmit} disabled={loading}>
+          {loading ? TEXT.loadingButton : TEXT.loginButton}
         </button>
 
         <p className="signup-footer">

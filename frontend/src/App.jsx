@@ -17,7 +17,8 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    if (!getToken()) {
+    const initialToken = getToken();
+    if (!initialToken) {
       return;
     }
 
@@ -27,9 +28,12 @@ function App() {
         setIsLoggedIn(true);
       })
       .catch(() => {
-        clearToken();
-        setCurrentUser(null);
-        setIsLoggedIn(false);
+        // 요청 도중 사용자가 새로 로그인한 경우 토큰이 바뀌므로 덮어쓰지 않음
+        if (getToken() === initialToken) {
+          clearToken();
+          setCurrentUser(null);
+          setIsLoggedIn(false);
+        }
       });
   }, []);
 
@@ -66,7 +70,7 @@ function App() {
                 isLoggedIn={isLoggedIn}
                 onLogout={handleLogout}
               />
-              <MainPage onCreateQuiz={() => requireLogin('/create')} />
+              <MainPage onCreateQuiz={() => requireLogin('/create')} isLoggedIn={isLoggedIn} />
             </>
           }
         />
