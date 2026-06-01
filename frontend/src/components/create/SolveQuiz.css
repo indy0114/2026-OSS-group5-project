@@ -116,6 +116,7 @@
   font-size: clamp(20px, 4vw, 26px);
   font-weight: 900;
   line-height: 1.4;
+  word-break: keep-all;
 }
 
 .solve-question-desc {
@@ -123,6 +124,7 @@
   font-size: 16px;
   font-weight: 600;
   white-space: pre-wrap;
+  word-break: keep-all;
   color: var(--muted);
 }
 
@@ -412,6 +414,7 @@
   padding: 8px 10px;
   line-height: 1.5;
   white-space: pre-wrap;
+  word-break: keep-all;
 }
 
 .solve-feedback-answer {
@@ -421,11 +424,60 @@
   color: var(--navy);
 }
 
+/* ── 문제 번호 네비게이션 ────────────────────── */
+.solve-question-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.solve-nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: var(--white);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.solve-nav-btn.current {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--white);
+}
+
+.solve-nav-btn.answered {
+  border-color: var(--correct);
+  color: var(--correct);
+}
+
+.solve-nav-btn.current.answered {
+  background: var(--correct);
+  border-color: var(--correct);
+  color: var(--white);
+}
+
 /* ── 하단 버튼 ────────────────────── */
 .solve-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 26px;
+}
+
+.solve-footer-prev {
+  margin-right: 0;
+}
+
+.solve-footer-right {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
 }
 
 .btn-primary {
