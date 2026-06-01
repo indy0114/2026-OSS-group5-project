@@ -349,8 +349,8 @@ function SlideDetailView({ slide, onChange, onSaveSlide, onCancel }) {
                 {[
                   { value: 5, label: '5초' },
                   { value: 10, label: '10초' },
-                  { value: 15, label: '15초' },
                   { value: 20, label: '20초' },
+                  { value: 30, label: '30초' },
                   { value: 0, label: '시간제한 없음' },
                 ].map((opt) => (
                   <button
@@ -627,7 +627,7 @@ function createSlide() {
     title: '',
     desc: '',
     explanation: '',
-    timeLimit: 20,
+    timeLimit: 5,
     photo: { file: null, link: '', dataUrl: null },
     video: { file: null, link: '', dataUrl: null },
     audio: { file: null, link: '', dataUrl: null },
