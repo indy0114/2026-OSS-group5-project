@@ -543,6 +543,49 @@
   font-size: 20px;
 }
 
+.result-list {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.result-list-item.correct {
+  background: var(--correct-bg);
+}
+
+.result-list-item.wrong {
+  background: var(--wrong-bg);
+}
+
+.result-list-num {
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 20px;
+}
+
+.result-list-title {
+  flex: 1;
+  color: var(--navy);
+  text-align: left;
+}
+
+.result-list-mark {
+  font-size: 16px;
+}
+
 .result-actions {
   display: flex;
   gap: 14px;

@@ -260,7 +260,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     const correct = isCorrect();
     setSubmitted(true);
     if (correct) setScore((s) => s + 1);
-    setResults((r) => [...r, { id: current?.id, correct }]);
+    setResults((r) => [...r, { id: current?.id, title: current?.title, correct }]);
   }, [submitted, isCorrect, current]);
 
   useEffect(() => {
@@ -352,6 +352,17 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
             <p className="result-count">
               {TEXT.correctCount} <strong>{score}</strong> / {total}
             </p>
+
+            <ul className="result-list">
+              {results.map((r, i) => (
+                <li key={r.id} className={`result-list-item ${r.correct ? 'correct' : 'wrong'}`}>
+                  <span className="result-list-num">{i + 1}</span>
+                  <span className="result-list-title">{r.title}</span>
+                  <span className="result-list-mark">{r.correct ? '⭕' : '❌'}</span>
+                </li>
+              ))}
+            </ul>
+
             <div className="result-actions">
               <button className="btn-ghost" type="button" onClick={handleRetry}>
                 {TEXT.retry}
