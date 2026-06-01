@@ -278,6 +278,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   const [results, setResults] = useState([]);
   const [timeLeft, setTimeLeft] = useState(20);
   const timerRef = useRef(null);
+  const questionStates = useRef({});
 
   useEffect(() => {
     if (!id) return;
@@ -306,6 +307,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   const total = questions.length;
   const current = questions[index];
   const timeLimit = current?.timeLimit ?? 20;
+  const allNoTimer = questions.length > 0 && questions.every((q) => (q.timeLimit ?? 20) === 0);
 
   const isCorrect = useCallback(() => {
     if (!current) return false;
@@ -377,14 +379,26 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   }
 
   const handleNext = () => {
+    questionStates.current[index] = { selected, inputValue, submitted };
     if (index + 1 >= total) {
       setView('result');
       return;
     }
+    const next = questionStates.current[index + 1];
     setIndex((i) => i + 1);
-    setSelected(null);
-    setInputValue('');
-    setSubmitted(false);
+    setSelected(next?.selected ?? null);
+    setInputValue(next?.inputValue ?? '');
+    setSubmitted(next?.submitted ?? false);
+  };
+
+  const handlePrev = () => {
+    if (index === 0) return;
+    questionStates.current[index] = { selected, inputValue, submitted };
+    const prev = questionStates.current[index - 1];
+    setIndex((i) => i - 1);
+    setSelected(prev?.selected ?? null);
+    setInputValue(prev?.inputValue ?? '');
+    setSubmitted(prev?.submitted ?? false);
   };
 
   const handleRetry = () => {
@@ -481,6 +495,32 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
               />
             </div>
           )}
+          {allNoTimer && (
+            <div className="solve-question-nav">
+              {questions.map((_, i) => {
+                const state = questionStates.current[i];
+                const isCurrent = i === index;
+                const isAnswered = state?.submitted || (isCurrent && submitted);
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`solve-nav-btn${isCurrent ? ' current' : ''}${isAnswered ? ' answered' : ''}`}
+                    onClick={() => {
+                      questionStates.current[index] = { selected, inputValue, submitted };
+                      const target = questionStates.current[i];
+                      setIndex(i);
+                      setSelected(target?.selected ?? null);
+                      setInputValue(target?.inputValue ?? '');
+                      setSubmitted(target?.submitted ?? false);
+                    }}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* 문제 카드 */}
@@ -568,15 +608,27 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
 
         {/* 하단 버튼 */}
         <div className="solve-footer">
-          {!submitted ? (
-            <button
-              className="btn-primary"
-              type="button"
-              disabled={!canSubmit}
-              onClick={handleSubmit}
-            >
-              {TEXT.submit}
+          {allNoTimer && index > 0 && (
+            <button className="btn-ghost solve-footer-prev" type="button" onClick={handlePrev}>
+              이전
             </button>
+          )}
+          {!submitted ? (
+            <div className="solve-footer-right">
+              <button
+                className="btn-primary"
+                type="button"
+                disabled={!canSubmit}
+                onClick={handleSubmit}
+              >
+                {TEXT.submit}
+              </button>
+              {allNoTimer && (
+                <button className="btn-ghost" type="button" onClick={handleNext}>
+                  {index + 1 >= total ? TEXT.showResult : TEXT.next}
+                </button>
+              )}
+            </div>
           ) : (
             <button className="btn-primary" type="button" onClick={handleNext}>
               {index + 1 >= total ? TEXT.showResult : TEXT.next}
