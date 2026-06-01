@@ -271,7 +271,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   const [loadError, setLoadError] = useState('');
   const [view, setView] = useState('playing');
   const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
@@ -292,6 +292,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
             timeLimit: q.time_limit ?? q.timeLimit ?? 20,
             options: q.options || [],
             answer: q.answer ?? '',
+            answers: q.answers?.length ? q.answers.map(String) : (q.answer != null ? [String(q.answer)] : []),
             explanation: q.explanation || '',
             media: q.media || null,
           }));
@@ -311,7 +312,11 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
 
   const isCorrect = useCallback(() => {
     if (!current) return false;
-    if (current.type === 'multiple') return selected === current.answer;
+    if (current.type === 'multiple') {
+      const correct = [...(current.answers ?? [])].sort();
+      const chosen = [...selected].sort();
+      return correct.length === chosen.length && correct.every((v, i) => v === chosen[i]);
+    }
     return inputValue.trim().toLowerCase() === String(current.answer).trim().toLowerCase();
   }, [current, selected, inputValue]);
 
@@ -394,7 +399,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     }
     const next = questionStates.current[index + 1];
     setIndex((i) => i + 1);
-    setSelected(next?.selected ?? null);
+    setSelected(next?.selected ?? []);
     setInputValue(next?.inputValue ?? '');
     setSubmitted(next?.submitted ?? false);
   };
@@ -404,7 +409,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     questionStates.current[index] = { selected, inputValue, submitted };
     const prev = questionStates.current[index - 1];
     setIndex((i) => i - 1);
-    setSelected(prev?.selected ?? null);
+    setSelected(prev?.selected ?? []);
     setInputValue(prev?.inputValue ?? '');
     setSubmitted(prev?.submitted ?? false);
   };
@@ -412,7 +417,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   const handleRetry = () => {
     setView('playing');
     setIndex(0);
-    setSelected(null);
+    setSelected([]);
     setInputValue('');
     setSubmitted(false);
     setScore(0);
@@ -420,7 +425,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   };
 
   const canSubmit =
-    current?.type === 'multiple' ? selected !== null : inputValue.trim() !== '';
+    current?.type === 'multiple' ? selected.length > 0 : inputValue.trim() !== '';
 
   if (view === 'result') {
     const percent = Math.round((score / total) * 100);
@@ -544,11 +549,14 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
           {current.type === 'multiple' && (
             <div className="solve-options">
               {current.options.map((opt) => {
+                const isMulti = (current.answers?.length ?? 0) > 1;
+                const isSelected = selected.includes(opt.id);
+                const isCorrectOpt = (current.answers ?? []).includes(opt.id);
                 let state = '';
                 if (submitted) {
-                  if (opt.id === current.answer) state = 'correct';
-                  else if (opt.id === selected) state = 'wrong';
-                } else if (opt.id === selected) {
+                  if (isCorrectOpt) state = 'correct';
+                  else if (isSelected) state = 'wrong';
+                } else if (isSelected) {
                   state = 'selected';
                 }
                 return (
@@ -557,7 +565,17 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
                     type="button"
                     className={`solve-option ${state}`}
                     disabled={submitted}
-                    onClick={() => setSelected(opt.id)}
+                    onClick={() => {
+                      if (isMulti) {
+                        setSelected((prev) =>
+                          prev.includes(opt.id)
+                            ? prev.filter((v) => v !== opt.id)
+                            : [...prev, opt.id]
+                        );
+                      } else {
+                        setSelected([opt.id]);
+                      }
+                    }}
                   >
                     <span className="solve-option-mark">{Number(opt.id) + 1}</span>
                     <span className="solve-option-text">{opt.text}</span>
@@ -599,7 +617,15 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
                   {TEXT.answerLabel}:{' '}
                   <strong>
                     {current.type === 'multiple'
-                      ? current.options.find((o) => o.id === current.answer)?.text
+                      ? (current.answers ?? [])
+                          .map((aid) => {
+                            const opt = current.options.find((o) => o.id === aid);
+                            if (!opt) return null;
+                            const circled = ['①','②','③','④','⑤'];
+                            return circled[Number(opt.id)] ?? `${Number(opt.id) + 1}`;
+                          })
+                          .filter(Boolean)
+                          .join(', ')
                       : current.answer}
                   </strong>
                 </p>
