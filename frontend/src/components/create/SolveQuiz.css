@@ -402,6 +402,16 @@
   color: var(--wrong);
 }
 
+.solve-feedback-explanation {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  background: rgba(0,0,0,0.04);
+  border-radius: 6px;
+  padding: 8px 10px;
+  line-height: 1.5;
+}
+
 .solve-feedback-answer {
   margin: 8px 0 0;
   font-size: 14px;

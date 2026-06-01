@@ -232,6 +232,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
             timeLimit: q.time_limit ?? q.timeLimit ?? 20,
             options: q.options || [],
             answer: q.answer ?? '',
+            explanation: q.explanation || '',
             media: q.media || null,
           }));
         if (data.order_mode === 'random') {
@@ -480,6 +481,9 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
                       : current.answer}
                   </strong>
                 </p>
+              )}
+              {!correct && current.explanation && (
+                <p className="solve-feedback-explanation">💡 {current.explanation}</p>
               )}
             </div>
           )}

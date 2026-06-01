@@ -17,6 +17,8 @@ const TEXT = {
   questionTitlePlaceholder: '문제의 제목을 입력하세요. (최대 50자)',
   extraDesc: '부가 설명 (선택)',
   extraDescPlaceholder: '문제에 대한 추가 설명을 입력하세요. (최대 200자)',
+  explanation: '해설 (선택)',
+  explanationPlaceholder: '오답 시 보여줄 해설을 입력하세요. (최대 300자)',
   media: '미디어 첨부 (선택)',
   photo: '사진 첨부',
   video: '영상 첨부',
@@ -330,6 +332,16 @@ function SlideDetailView({ slide, onChange, onSaveSlide, onCancel }) {
               />
             </label>
 
+            <label className="add-field">
+              <span>{TEXT.explanation}</span>
+              <textarea
+                maxLength={300}
+                value={slide.explanation}
+                onChange={(event) => onChange('explanation', event.target.value)}
+                placeholder={TEXT.explanationPlaceholder}
+              />
+            </label>
+
             <div className="add-field">
               <span>{TEXT.media}</span>
               <div className="media-grid">
@@ -523,6 +535,7 @@ async function slideToQuestion(slide, timeLimit) {
     id: String(slide.id),
     title: slide.title.trim(),
     description: (slide.desc || '').trim(),
+    explanation: (slide.explanation || '').trim(),
     timeLimit: timeLimit ?? 20,
   };
 
@@ -590,6 +603,7 @@ function createSlide() {
     complete: false,
     title: '',
     desc: '',
+    explanation: '',
     photo: { file: null, link: '', dataUrl: null },
     video: { file: null, link: '', dataUrl: null },
     audio: { file: null, link: '', dataUrl: null },
@@ -613,6 +627,7 @@ function questionToSlide(question) {
     complete: true,
     title: question.title || '',
     desc: question.description || '',
+    explanation: question.explanation || '',
     photo: parseMediaField(m.photo),
     video: parseMediaField(m.video),
     audio: parseMediaField(m.audio),
