@@ -4,6 +4,65 @@ import { getQuiz } from '../../api/quizzes.js';
 import Header from '../common/Header.jsx';
 import './SolveQuiz.css';
 
+function getAudioContext() {
+  if (!window._quizzlyAudioCtx) {
+    window._quizzlyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return window._quizzlyAudioCtx;
+}
+
+function playTick() {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.1);
+  } catch {}
+}
+
+function playCorrect() {
+  try {
+    const ctx = getAudioContext();
+    [523, 659, 784].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.2);
+      osc.start(ctx.currentTime + i * 0.12);
+      osc.stop(ctx.currentTime + i * 0.12 + 0.2);
+    });
+  } catch {}
+}
+
+function playWrong() {
+  try {
+    const ctx = getAudioContext();
+    [330, 220].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.18);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.25);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.25);
+    });
+  } catch {}
+}
+
 const TEXT = {
   home: 'Quizzly',
   exit: '나가기',
@@ -259,7 +318,12 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     clearInterval(timerRef.current);
     const correct = isCorrect();
     setSubmitted(true);
-    if (correct) setScore((s) => s + 1);
+    if (correct) {
+      setScore((s) => s + 1);
+      playCorrect();
+    } else {
+      playWrong();
+    }
     setResults((r) => [...r, { id: current?.id, title: current?.title, correct }]);
   }, [submitted, isCorrect, current]);
 
@@ -284,6 +348,8 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     if (timeLimit === 0) return;
     if (timeLeft === 0 && !submitted && view === 'playing') {
       handleSubmit();
+    } else if (timeLeft > 0 && timeLeft <= 5 && !submitted && view === 'playing') {
+      playTick();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft]);
