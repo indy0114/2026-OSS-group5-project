@@ -120,8 +120,9 @@
 
 .solve-question-desc {
   margin: 10px 0 0;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
+  white-space: pre-wrap;
   color: var(--muted);
 }
 
@@ -410,6 +411,7 @@
   border-radius: 6px;
   padding: 8px 10px;
   line-height: 1.5;
+  white-space: pre-wrap;
 }
 
 .solve-feedback-answer {

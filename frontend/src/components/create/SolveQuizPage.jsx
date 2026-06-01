@@ -494,7 +494,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
                 </p>
               )}
               {!correct && current.explanation && (
-                <p className="solve-feedback-explanation">💡 {current.explanation}</p>
+                <p className="solve-feedback-explanation">{current.explanation}</p>
               )}
             </div>
           )}
