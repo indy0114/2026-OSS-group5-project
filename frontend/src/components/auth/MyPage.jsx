@@ -9,7 +9,7 @@ const TEXT = {
   title: '마이페이지',
   infoSection: '내 정보 조회',
   quizSection: '내 퀴즈 조회',
-  likedSection: '좋아한 퀴즈 조회',
+  likedSection: '좋아요한 퀴즈 조회',
   idLabel: '아이디',
   emailLabel: '이메일',
   passwordLabel: '비밀번호',
