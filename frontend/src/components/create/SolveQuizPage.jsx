@@ -448,7 +448,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
                     disabled={submitted}
                     onClick={() => setSelected(opt.id)}
                   >
-                    <span className="solve-option-mark">{opt.id.toUpperCase()}</span>
+                    <span className="solve-option-mark">{Number(opt.id) + 1}</span>
                     <span className="solve-option-text">{opt.text}</span>
                   </button>
                 );
