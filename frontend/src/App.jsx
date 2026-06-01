@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import Header from './components/common/Header.jsx';
+import Footer from './components/common/Footer.jsx';
 import MainPage from './components/MainPage.jsx';
 import Login from './components/auth/Login.jsx';
 import Signup from './components/auth/Signup.jsx';
@@ -151,6 +152,7 @@ function App() {
           }
         />
       </Routes>
+      <Footer />
     </div>
   );
 }
