@@ -49,13 +49,6 @@ const categories = [
   TEXT.etc,
 ];
 
-const timerOptions = [
-  { value: 5, label: '5초' },
-  { value: 10, label: '10초' },
-  { value: 15, label: '15초' },
-  { value: 20, label: '20초' },
-  { value: 0, label: '시간제한 없음' },
-];
 
 const orderTypes = [
   {
@@ -266,21 +259,6 @@ function SettingsStep({ form, onChange, onSave }) {
             </button>
           </div>
 
-          <div className="create-field">
-            <span>{TEXT.timer}</span>
-            <div className="timer-chip-group">
-              {timerOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  className={form.timeLimit === opt.value ? 'timer-chip selected' : 'timer-chip'}
-                  type="button"
-                  onClick={() => onChange('timeLimit', opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -326,7 +304,6 @@ function CreateQuizPage() {
     category: categories[0],
     visibility: 'public',
     order: 'random',
-    timeLimit: 20,
     thumbnailFile: null,
     existingThumbnailUrl: null,
   });

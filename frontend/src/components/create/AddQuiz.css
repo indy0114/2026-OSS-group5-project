@@ -211,6 +211,32 @@
   font-weight: 700;
 }
 
+.timer-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.timer-chip {
+  height: 34px;
+  padding: 0 16px;
+  border: 2px solid #b9c3cd;
+  border-radius: 17px;
+  background: #ffffff;
+  color: #002d56;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.timer-chip.selected {
+  border-color: #002d56;
+  background: #002d56;
+  color: #ffffff;
+}
+
 /* 미디어 첨부 */
 .media-grid {
   display: grid;
