@@ -559,7 +559,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
                   </strong>
                 </p>
               )}
-              {!correct && current.explanation && (
+              {current.explanation && (
                 <p className="solve-feedback-explanation">{current.explanation}</p>
               )}
             </div>
