@@ -222,6 +222,7 @@ function QuizSection({
           options={[
             { value: 'latest', label: TEXT.latest },
             { value: 'name', label: TEXT.name },
+            { value: 'views', label: '조회순' },
           ]}
         />
       </div>
@@ -394,6 +395,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
  
     return [...visible].sort((a, b) => {
       if (sortOrder === 'name') return a.title.localeCompare(b.title, 'ko');
+      if (sortOrder === 'views') return (b.viewCount ?? 0) - (a.viewCount ?? 0);
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
   }, [allQuizzes, activeCategory, query, sortOrder, searchType]);
