@@ -160,7 +160,12 @@ function QuizList({ quizzes, onDeleteQuiz, onEditQuiz }) {
     <div key={quiz.id} className="mypage-quiz-item">
       <div className="mypage-quiz-thumbnail" />
       <div className="mypage-quiz-info">
-        {quiz.title && <p className="mypage-quiz-title">{quiz.title}</p>}
+        {quiz.title && (
+          <div className="mypage-quiz-title-row">
+            <p className="mypage-quiz-title">{quiz.title}</p>
+            {quiz.view_count > 0 && <span className="mypage-quiz-view-count">👁 {quiz.view_count}</span>}
+          </div>
+        )}
         {quiz.tags.length > 0 && (
           <div className="mypage-quiz-tags">
             {quiz.tags.map((tag) => (
@@ -213,7 +218,10 @@ function LikedQuizList({ quizzes }) {
         }
       />
       <div className="mypage-quiz-info">
-        <p className="mypage-quiz-title">{quiz.title}</p>
+        <div className="mypage-quiz-title-row">
+          <p className="mypage-quiz-title">{quiz.title}</p>
+          {quiz.view_count > 0 && <span className="mypage-quiz-view-count">👁 {quiz.view_count}</span>}
+        </div>
         <div className="mypage-quiz-tags">
           {quiz.category && <span className="mypage-quiz-tag">{quiz.category}</span>}
           <span className="mypage-quiz-tag">{quiz.question_count}문제</span>

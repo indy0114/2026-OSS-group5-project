@@ -249,13 +249,31 @@
   min-width: 0;
 }
 
+.mypage-quiz-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
 .mypage-quiz-title {
-  margin: 0 0 6px;
+  margin: 0;
   color: var(--navy);
   font-size: 14px;
   font-weight: 900;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.mypage-quiz-view-count {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #67798a;
   white-space: nowrap;
 }
 
