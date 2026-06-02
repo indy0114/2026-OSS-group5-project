@@ -390,6 +390,7 @@ function CreateQuizPage() {
 
   const handleCancel = () => {
     sessionStorage.removeItem('quizDraft');
+    window.scrollTo(0, 0);
     navigate(-1);
   };
  

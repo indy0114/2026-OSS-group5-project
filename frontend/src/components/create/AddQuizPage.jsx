@@ -754,11 +754,13 @@ function AddQuizPage() {
     setSlides((current) => [...current, slide]);
     setEditingId(slide.id);
     setView('detail');
+    window.scrollTo(0, 0);
   };
 
   const handleEditSlide = (id) => {
     setEditingId(id);
     setView('detail');
+    window.scrollTo(0, 0);
   };
 
   const handleDeleteSlide = (id) => {
@@ -786,18 +788,21 @@ function AddQuizPage() {
     );
     setView('list');
     setEditingId(null);
+    window.scrollTo(0, 0);
   };
 
   const handleCancelDetail = () => {
     setSlides((current) => current.filter((slide) => !(slide.id === editingId && !slide.complete)));
     setView('list');
     setEditingId(null);
+    window.scrollTo(0, 0);
   };
 
   const handleHeaderCancel = () => {
     if (view === 'detail') {
       handleCancelDetail();
     } else {
+      window.scrollTo(0, 0);
       navigate(-1);
     }
   };
