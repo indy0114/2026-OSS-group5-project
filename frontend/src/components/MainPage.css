@@ -346,9 +346,15 @@ button {
 .category-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px 22px;
+  justify-content: space-between;
+  gap: 16px 12px;
   width: min(100%, var(--quiz-content-max));
   margin: 18px auto 26px;
+}
+
+.category-chip.category-more {
+  margin-left: auto;
+  min-width: 96px;
 }
 
 .category-chip {
@@ -372,6 +378,8 @@ button {
   background: var(--navy);
   color: var(--white);
 }
+
+
 
 .quiz-grid {
   display: grid;
