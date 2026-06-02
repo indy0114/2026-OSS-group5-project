@@ -133,6 +133,8 @@ function QuizSection({
   onCategoryChange,
   query,
   onQueryChange,
+  searchType,
+  onSearchTypeChange,
   sortOrder,
   onSortOrderChange,
   quizzes,
@@ -154,15 +156,27 @@ function QuizSection({
   return (
     <section className="quiz-section" id="quiz-list" aria-label={TEXT.quizList}>
       <div className="quiz-toolbar">
-        <label className="search-field">
-          <span className="sr-only">{TEXT.search}</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder={TEXT.placeholder}
-          />
-        </label>
+        <div className="search-field-wrap">
+          <select
+            className="search-type-select"
+            value={searchType}
+            onChange={(e) => onSearchTypeChange(e.target.value)}
+          >
+            <option value="all">전체</option>
+            <option value="title">제목</option>
+            <option value="author">작성자</option>
+            <option value="tag">태그</option>
+          </select>
+          <label className="search-field">
+            <span className="sr-only">{TEXT.search}</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => onQueryChange(event.target.value)}
+              placeholder={TEXT.placeholder}
+            />
+          </label>
+        </div>
  
         <div className="sort-menu" aria-label={TEXT.sortLabel}>
           <button
@@ -241,6 +255,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
   const [activeCategory, setActiveCategory] = useState(TEXT.all);
   const [query, setQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('latest');
+  const [searchType, setSearchType] = useState('all');
 
   const [allQuizzes, setAllQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -264,6 +279,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
           createdAt: q.created_at,
           likeCount: q.like_count ?? 0,
           author: q.author || '',
+          tags: q.tags || [],
         }));
         setAllQuizzes(mapped);
         const counts = {};
@@ -348,10 +364,15 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
     const visible = allQuizzes.filter((quiz) => {
       const matchesCategory = activeCategory === TEXT.all || quiz.category === activeCategory;
       const keyword = query.trim().toLowerCase();
-      const matchesQuery =
-        !keyword ||
-        quiz.title.toLowerCase().includes(keyword) ||
-        quiz.category.toLowerCase().includes(keyword);
+      const matchesQuery = !keyword || (() => {
+        const title = quiz.title.toLowerCase().includes(keyword);
+        const author = (quiz.author ?? '').toLowerCase().includes(keyword);
+        const tag = (quiz.tags ?? []).some((t) => t.toLowerCase().includes(keyword));
+        if (searchType === 'title') return title;
+        if (searchType === 'author') return author;
+        if (searchType === 'tag') return tag;
+        return title || author || tag;
+      })();
  
       return matchesCategory && matchesQuery;
     });
@@ -360,7 +381,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
       if (sortOrder === 'name') return a.title.localeCompare(b.title, 'ko');
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-  }, [allQuizzes, activeCategory, query, sortOrder]);
+  }, [allQuizzes, activeCategory, query, sortOrder, searchType]);
  
   return (
     <main>
@@ -370,6 +391,8 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
         onCategoryChange={setActiveCategory}
         query={query}
         onQueryChange={setQuery}
+        searchType={searchType}
+        onSearchTypeChange={setSearchType}
         sortOrder={sortOrder}
         onSortOrderChange={setSortOrder}
         quizzes={filteredQuizzes}
