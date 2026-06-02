@@ -391,7 +391,7 @@ button {
 
 .quiz-card {
   min-height: 292px;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 10px;
   background: var(--white);
   box-shadow: var(--shadow);
@@ -499,8 +499,11 @@ button {
   margin-bottom: 9px;
 }
 
-.card-meta span {
+.meta-tip {
+  position: relative;
+  display: inline-flex;
   min-width: 52px;
+  max-width: 90px;
   padding: 5px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -508,8 +511,57 @@ button {
   font-size: 11px;
   font-weight: 800;
   text-align: center;
-  word-break: keep-all;
-  overflow-wrap: break-word;
+}
+
+.meta-tip-inner {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.meta-tip-box {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 200;
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  min-width: unset;
+  max-width: unset;
+}
+
+.card-meta span {
+  min-width: 52px;
+  max-width: 90px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: #67798a;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-meta .meta-tip {
+  padding: 0;
+  border: none;
+  min-width: unset;
+  max-width: unset;
+  overflow: visible;
 }
 
 .card-body p {

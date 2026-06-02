@@ -69,6 +69,27 @@ function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
   );
 }
 
+/* Meta Chip with tooltip */
+function MetaChip({ text }) {
+  const innerRef = useRef(null);
+  const [truncated, setTruncated] = useState(false);
+  const [show, setShow] = useState(false);
+
+  const handleMouseEnter = () => {
+    if (innerRef.current && innerRef.current.scrollWidth > innerRef.current.clientWidth) {
+      setTruncated(true);
+      setShow(true);
+    }
+  };
+
+  return (
+    <span className="meta-tip" onMouseEnter={handleMouseEnter} onMouseLeave={() => setShow(false)}>
+      <span className="meta-tip-inner" ref={innerRef}>{text}</span>
+      {show && truncated && <div className="meta-tip-box">{text}</div>}
+    </span>
+  );
+}
+
 /* Heart Icon */
 function HeartIcon({ filled }) {
   return (
@@ -117,12 +138,9 @@ function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
           {quiz.viewCount > 0 && <span className="card-view-count">👁 {quiz.viewCount}</span>}
         </div>
         <div className="card-meta">
-          <span>{quiz.category}</span>
-          <span>
-            {quiz.questionCount}
-            {TEXT.questionUnit}
-          </span>
-          {quiz.author && <span>{quiz.author}</span>}
+          <MetaChip text={quiz.category} />
+          <span>{quiz.questionCount}{TEXT.questionUnit}</span>
+          {quiz.author && <MetaChip text={quiz.author} />}
         </div>
         <p>{quiz.description}</p>
       </div>
