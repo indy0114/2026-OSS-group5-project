@@ -204,6 +204,50 @@ function OrderIcon({ type }) {
   );
 }
 
+
+function CustomSelect({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="create-custom-select" ref={ref}>
+      <button
+        type="button"
+        className="create-custom-select-btn"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {current?.label}
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="create-custom-select-options">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              className={`create-custom-select-option${o.value === value ? ' active' : ''}`}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsStep({ form, onChange, onSave }) {
   return (
     <section className="create-large-panel settings-panel" aria-label={TEXT.quizCreate}>
@@ -232,7 +276,8 @@ function SettingsStep({ form, onChange, onSave }) {
             />
           </Field>
 
-          <Field label={TEXT.category}>
+          <div className="create-field">
+            <span>{TEXT.category}</span>
             {form.category === '__custom__' ? (
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
@@ -251,16 +296,16 @@ function SettingsStep({ form, onChange, onSave }) {
                 </button>
               </div>
             ) : (
-              <select value={form.category} onChange={(event) => onChange('category', event.target.value)}>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-                <option value="__custom__">직접 입력...</option>
-              </select>
+              <CustomSelect
+                value={form.category}
+                onChange={(val) => onChange('category', val)}
+                options={[
+                  ...categories.map((c) => ({ value: c, label: c })),
+                  { value: '__custom__', label: '직접 입력...' },
+                ]}
+              />
             )}
-          </Field>
+          </div>
         </div>
 
         <div className="settings-right">

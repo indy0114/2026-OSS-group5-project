@@ -203,7 +203,7 @@ function QuizSection({
               { value: 'all', label: '전체' },
               { value: 'title', label: '제목' },
               { value: 'author', label: '작성자' },
-              { value: 'tag', label: '태그' },
+              { value: 'tag', label: '카테고리' },
             ]}
           />
           <label className="search-field">
@@ -383,11 +383,11 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
       const matchesQuery = !keyword || (() => {
         const title = quiz.title.toLowerCase().includes(keyword);
         const author = (quiz.author ?? '').toLowerCase().includes(keyword);
-        const tag = (quiz.tags ?? []).some((t) => t.toLowerCase().includes(keyword));
+        const category = (quiz.category ?? '').toLowerCase().includes(keyword);
         if (searchType === 'title') return title;
         if (searchType === 'author') return author;
-        if (searchType === 'tag') return tag;
-        return title || author || tag;
+        if (searchType === 'tag') return category;
+        return title || author || category;
       })();
  
       return matchesCategory && matchesQuery;
