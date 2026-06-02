@@ -74,10 +74,10 @@ function fileToDataUrl(file) {
   });
 }
 
-function CreateHeader({ onCancel, onSave }) {
+function CreateHeader({ onCancel, onSave, onHome }) {
   return (
     <header className="site-header create-header">
-      <button className="header-logo create-header-logo" type="button" onClick={onCancel} aria-label={TEXT.home}>
+      <button className="header-logo create-header-logo" type="button" onClick={onHome} aria-label={TEXT.home}>
         <img src={iconUrl} alt="" />
       </button>
       <nav className="header-actions" aria-label={TEXT.quizCreate}>
@@ -233,13 +233,33 @@ function SettingsStep({ form, onChange, onSave }) {
           </Field>
 
           <Field label={TEXT.category}>
-            <select value={form.category} onChange={(event) => onChange('category', event.target.value)}>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+            {form.category === '__custom__' ? (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  placeholder="카테고리 직접 입력"
+                  autoFocus
+                  onChange={(e) => onChange('customCategory', e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => onChange('category', categories[0])}
+                  style={{ whiteSpace: 'nowrap', padding: '0 12px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--white)', cursor: 'pointer', fontSize: '13px' }}
+                >
+                  취소
+                </button>
+              </div>
+            ) : (
+              <select value={form.category} onChange={(event) => onChange('category', event.target.value)}>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+                <option value="__custom__">직접 입력...</option>
+              </select>
+            )}
           </Field>
         </div>
 
@@ -327,7 +347,11 @@ function CreateQuizPage() {
   }, []);
 
   const updateForm = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    if (key === 'customCategory') {
+      setForm((current) => ({ ...current, customCategory: value }));
+    } else {
+      setForm((current) => ({ ...current, [key]: value }));
+    }
   };
 
   const handleSave = async () => {
@@ -352,7 +376,9 @@ function CreateQuizPage() {
       ...(prev.editId ? { editId: prev.editId, questions: prev.questions } : {}),
       title: form.title.trim(),
       description: form.description.trim(),
-      category: form.category === TEXT.categoryPlaceholder ? null : form.category,
+      category: form.category === '__custom__'
+        ? (form.customCategory?.trim() || null)
+        : form.category === TEXT.categoryPlaceholder ? null : form.category,
       visibility: form.visibility,
       order: form.order,
       timeLimit: form.timeLimit,
@@ -369,7 +395,7 @@ function CreateQuizPage() {
  
   return (
     <div className="create-page">
-      <CreateHeader onCancel={handleCancel} onSave={handleSave} />
+      <CreateHeader onCancel={handleCancel} onSave={handleSave} onHome={() => { sessionStorage.removeItem('quizDraft'); navigate('/'); }} />
       <main className="create-main create-main-settings">
         <SettingsStep form={form} onChange={updateForm} onSave={handleSave} />
       </main>
