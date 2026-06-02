@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoUrl from '../assets/quizzly-logo-cropped.png';
 import { getQuizzes, toggleLike, getMyLikes } from '../api/quizzes.js';
@@ -131,6 +131,49 @@ function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
 }
 
 /* Quiz Section */
+function CustomSelect({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="custom-select" ref={ref}>
+      <button
+        type="button"
+        className="custom-select-btn"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {current?.label}
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="custom-select-options">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              className={`custom-select-option${o.value === value ? ' active' : ''}`}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function QuizSection({
   activeCategory,
   onCategoryChange,
@@ -148,28 +191,21 @@ function QuizSection({
   onLike,
 }) {
   const navigate = useNavigate();
-  const [isSortOpen, setIsSortOpen] = useState(false);
-  const currentSortText = sortOrder === 'name' ? TEXT.name : TEXT.latest;
- 
-  const handleSortChange = (nextSortOrder) => {
-    onSortOrderChange(nextSortOrder);
-    setIsSortOpen(false);
-  };
  
   return (
     <section className="quiz-section" id="quiz-list" aria-label={TEXT.quizList}>
       <div className="quiz-toolbar">
         <div className="search-field-wrap">
-          <select
-            className="search-type-select"
+          <CustomSelect
             value={searchType}
-            onChange={(e) => onSearchTypeChange(e.target.value)}
-          >
-            <option value="all">전체</option>
-            <option value="title">제목</option>
-            <option value="author">작성자</option>
-            <option value="tag">태그</option>
-          </select>
+            onChange={onSearchTypeChange}
+            options={[
+              { value: 'all', label: '전체' },
+              { value: 'title', label: '제목' },
+              { value: 'author', label: '작성자' },
+              { value: 'tag', label: '태그' },
+            ]}
+          />
           <label className="search-field">
             <span className="sr-only">{TEXT.search}</span>
             <input
@@ -180,39 +216,14 @@ function QuizSection({
             />
           </label>
         </div>
- 
-        <div className="sort-menu" aria-label={TEXT.sortLabel}>
-          <button
-            className="sort-button"
-            type="button"
-            onClick={() => setIsSortOpen((isOpen) => !isOpen)}
-            aria-expanded={isSortOpen}
-            aria-haspopup="menu"
-          >
-            {currentSortText}
-          </button>
- 
-          {isSortOpen && (
-            <div className="sort-options" role="menu">
-              <button
-                className={sortOrder === 'latest' ? 'sort-option active' : 'sort-option'}
-                type="button"
-                onClick={() => handleSortChange('latest')}
-                role="menuitem"
-              >
-                {TEXT.latest}
-              </button>
-              <button
-                className={sortOrder === 'name' ? 'sort-option active' : 'sort-option'}
-                type="button"
-                onClick={() => handleSortChange('name')}
-                role="menuitem"
-              >
-                {TEXT.name}
-              </button>
-            </div>
-          )}
-        </div>
+        <CustomSelect
+          value={sortOrder}
+          onChange={onSortOrderChange}
+          options={[
+            { value: 'latest', label: TEXT.latest },
+            { value: 'name', label: TEXT.name },
+          ]}
+        />
       </div>
  
       <div className="category-list" aria-label={TEXT.category}>
