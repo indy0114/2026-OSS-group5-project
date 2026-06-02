@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import iconUrl from '../../assets/quizzly-icon.png';
+import { getQuizzes } from '../../api/quizzes.js';
 import './CreateQuiz.css';
 
 const TEXT = {
@@ -248,7 +249,7 @@ function CustomSelect({ value, onChange, options }) {
   );
 }
 
-function SettingsStep({ form, onChange, onSave }) {
+function SettingsStep({ form, onChange, onSave, allCategories }) {
   return (
     <section className="create-large-panel settings-panel" aria-label={TEXT.quizCreate}>
       <div className="panel-title-row">
@@ -300,7 +301,7 @@ function SettingsStep({ form, onChange, onSave }) {
                 value={form.category}
                 onChange={(val) => onChange('category', val)}
                 options={[
-                  ...categories.map((c) => ({ value: c, label: c })),
+                  ...allCategories.map((c) => ({ value: c, label: c })),
                   { value: '__custom__', label: '직접 입력...' },
                 ]}
               />
@@ -363,6 +364,25 @@ function SettingsStep({ form, onChange, onSave }) {
 
 function CreateQuizPage() {
   const navigate = useNavigate();
+  const [extraCategories, setExtraCategories] = useState([]);
+
+  useEffect(() => {
+    getQuizzes()
+      .then((data) => {
+        const custom = data
+          .map((q) => q.category)
+          .filter((c) => c && !categories.includes(c));
+        setExtraCategories([...new Set(custom)]);
+      })
+      .catch(() => {});
+  }, []);
+
+  const allCategories = [
+    ...categories.filter((c) => c !== TEXT.etc),
+    ...extraCategories,
+    TEXT.etc,
+  ];
+
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -443,7 +463,7 @@ function CreateQuizPage() {
     <div className="create-page">
       <CreateHeader onCancel={handleCancel} onSave={handleSave} onHome={() => { sessionStorage.removeItem('quizDraft'); navigate('/'); }} />
       <main className="create-main create-main-settings">
-        <SettingsStep form={form} onChange={updateForm} onSave={handleSave} />
+        <SettingsStep form={form} onChange={updateForm} onSave={handleSave} allCategories={allCategories} />
       </main>
     </div>
   );
