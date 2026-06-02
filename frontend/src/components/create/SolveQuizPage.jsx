@@ -415,6 +415,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   };
 
   const handleRetry = () => {
+    questionStates.current = {};
     setView('playing');
     setIndex(0);
     setSelected([]);
@@ -429,22 +430,39 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
 
   if (view === 'result') {
     const percent = Math.round((score / total) * 100);
+    const wrongCount = total - score;
+    const resultMsg =
+      percent === 100 ? '만점이에요! 🏆' :
+      percent >= 80 ? '훌륭해요! 🎉' :
+      percent >= 60 ? '잘했어요! 👍' : '더 노력해봐요! 💪';
+    const ringColor =
+      percent === 100 ? '#1f9d57' :
+      percent >= 60 ? 'var(--navy)' : '#d9534f';
     return (
       <div className="solve-page">
         <Header isLoggedIn={isLoggedIn} onLogout={onLogout} />
         <main className="solve-main">
           <div className="result-card">
-            <p className="result-emoji">{percent >= 60 ? '🎉' : '💪'}</p>
+            {quiz?.title && <p className="result-quiz-title">{quiz.title}</p>}
             <h1 className="result-title">{TEXT.resultTitle}</h1>
-            <div className="result-score-ring" style={{ '--p': percent }}>
-              <span className="result-score-num">
+            <div className="result-score-ring" style={{ '--p': percent, '--ring-color': ringColor }}>
+              <span className="result-score-num" style={{ color: ringColor }}>
                 {percent}
                 <em>{TEXT.scoreSuffix}</em>
               </span>
             </div>
-            <p className="result-count">
-              {TEXT.correctCount} <strong>{score}</strong> / {total}
-            </p>
+            <p className="result-msg">{resultMsg}</p>
+            <div className="result-stat-row">
+              <div className="result-stat correct">
+                <span className="result-stat-num">{score}</span>
+                <span className="result-stat-label">정답</span>
+              </div>
+              <div className="result-stat-divider" />
+              <div className="result-stat wrong">
+                <span className="result-stat-num">{wrongCount}</span>
+                <span className="result-stat-label">오답</span>
+              </div>
+            </div>
 
             <ul className="result-list">
               {results.map((r, i) => (
