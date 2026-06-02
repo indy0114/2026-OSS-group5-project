@@ -48,10 +48,10 @@ const TEXT = {
   correctRequired: '정답인 보기를 선택해주세요.',
 };
 
-function AddHeader({ onCancel, onSave }) {
+function AddHeader({ onCancel, onSave, onHome }) {
   return (
     <header className="site-header add-header">
-      <button className="header-logo add-header-logo" type="button" onClick={onCancel} aria-label={TEXT.home}>
+      <button className="header-logo add-header-logo" type="button" onClick={onHome} aria-label={TEXT.home}>
         <img src={iconUrl} alt="" />
       </button>
       <nav className="header-actions" aria-label={TEXT.slideCreate}>
@@ -785,7 +785,7 @@ function AddQuizPage() {
 
   return (
     <div className="add-page">
-      <AddHeader onCancel={handleHeaderCancel} onSave={handleSaveQuiz} />
+      <AddHeader onCancel={handleHeaderCancel} onSave={handleSaveQuiz} onHome={() => { sessionStorage.removeItem('quizDraft'); navigate('/'); }} />
 
       {view === 'list' ? (
         <SlideListView
