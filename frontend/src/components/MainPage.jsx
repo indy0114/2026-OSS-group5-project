@@ -7,7 +7,7 @@ import './MainPage.css';
 const TEXT = {
   all: '전체',
   makeQuiz: '퀴즈 만들기',
-  solveQuiz: '퀴즈 풀기',
+  solveQuiz: '랜덤 퀴즈 풀기',
   goToList: '퀴즈 목록으로 이동',
   quizList: '퀴즈 목록',
   search: '퀴즈 검색',
