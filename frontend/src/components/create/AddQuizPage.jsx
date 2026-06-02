@@ -2,6 +2,20 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import iconUrl from '../../assets/quizzly-icon.png';
 import { createQuiz, updateQuiz } from '../../api/quizzes.js';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  rectSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import './AddQuiz.css';
 
 const TEXT = {
@@ -227,37 +241,74 @@ function MediaCard({ icon, label, accept, media, onChangeMedia, showImagePreview
   );
 }
 
-function SlideListView({ slides, onAdd, onEdit, onDelete }) {
+function SortableSlideCard({ slide, index, onEdit, onDelete }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: slide.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="slide-card-wrap">
+      <button
+        className="slide-card"
+        type="button"
+        onClick={() => onEdit(slide.id)}
+        {...attributes}
+        {...listeners}
+      >
+        <span className="slide-card-num">{index + 1}</span>
+        <span className="slide-card-title">{slide.title || `문제 ${index + 1}`}</span>
+        <span
+          className="slide-card-delete"
+          role="button"
+          tabIndex={0}
+          aria-label={TEXT.deleteSlide}
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete(slide.id);
+          }}
+        >
+          <TrashIcon className="slide-trash-icon" />
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function SlideListView({ slides, onAdd, onEdit, onDelete, onReorder }) {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = slides.findIndex((s) => s.id === active.id);
+      const newIndex = slides.findIndex((s) => s.id === over.id);
+      onReorder(arrayMove(slides, oldIndex, newIndex));
+    }
+  };
+
   return (
     <main className="add-main add-main-list">
-      <div className="slide-grid">
-        {slides.map((slide, index) => (
-          <button
-            key={slide.id}
-            className="slide-card"
-            type="button"
-            onClick={() => onEdit(slide.id)}
-          >
-            <span className="slide-card-title">{slide.title || `문제 ${index + 1}`}</span>
-            <span
-              className="slide-card-delete"
-              role="button"
-              tabIndex={0}
-              aria-label={TEXT.deleteSlide}
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete(slide.id);
-              }}
-            >
-              <TrashIcon className="slide-trash-icon" />
-            </span>
-          </button>
-        ))}
-
-        <button className="slide-card add" type="button" onClick={onAdd}>
-          <PlusIcon />
-        </button>
-      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={slides.map((s) => s.id)} strategy={rectSortingStrategy}>
+          <div className="slide-grid">
+            {slides.map((slide, index) => (
+              <SortableSlideCard
+                key={slide.id}
+                slide={slide}
+                index={index}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))}
+            <button className="slide-card add" type="button" onClick={onAdd}>
+              <PlusIcon />
+            </button>
+          </div>
+        </SortableContext>
+      </DndContext>
     </main>
   );
 }
@@ -793,6 +844,7 @@ function AddQuizPage() {
           onAdd={handleAddSlide}
           onEdit={handleEditSlide}
           onDelete={handleDeleteSlide}
+          onReorder={setSlides}
         />
       ) : (
         editingSlide && (
