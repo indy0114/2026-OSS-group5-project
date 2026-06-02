@@ -400,6 +400,35 @@ button {
   padding: 12px 14px 16px;
 }
 
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.card-title-row h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-view-count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: #67798a;
+  white-space: nowrap;
+}
+
 .card-body h2 {
   margin: 0 0 8px;
   color: var(--navy);

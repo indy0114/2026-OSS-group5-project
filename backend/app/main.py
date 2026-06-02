@@ -148,6 +148,7 @@ def init_db():
             "visibility": "ALTER TABLE quizzes ADD COLUMN visibility TEXT NOT NULL DEFAULT 'public'",
             "order_mode": "ALTER TABLE quizzes ADD COLUMN order_mode TEXT NOT NULL DEFAULT 'random'",
             "questions": "ALTER TABLE quizzes ADD COLUMN questions TEXT NOT NULL DEFAULT '[]'",
+            "view_count": "ALTER TABLE quizzes ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0",
         }
         for column, sql in column_migrations.items():
             if column not in existing_columns:
@@ -211,6 +212,7 @@ def row_to_quiz(row, include_questions=False):
         "tags": row["tags"].split(",") if ("tags" in keys and row["tags"]) else [],
         "question_count": len(questions),
         "like_count": row["like_count"] if "like_count" in keys else 0,
+        "view_count": row["view_count"] if "view_count" in keys else 0,
         "created_at": row["created_at"],
     }
     if "author" in keys:
@@ -393,8 +395,11 @@ def list_quizzes():
 
 @app.get("/api/quizzes/{quiz_id}")
 def get_quiz(quiz_id: int):
-    # 풀기 페이지용: 문제 본문 포함.
     with get_connection() as connection:
+        connection.execute(
+            "UPDATE quizzes SET view_count = view_count + 1 WHERE id = ?",
+            (quiz_id,),
+        )
         row = connection.execute(
             """
             SELECT quizzes.*, users.username AS author,
@@ -478,8 +483,8 @@ def get_my_quizzes(user=Depends(get_current_user)):
     with get_connection() as connection:
         rows = connection.execute(
             """
-            SELECT id, title, description, tags, created_at 
-            FROM quizzes 
+            SELECT id, title, description, tags, view_count, created_at
+            FROM quizzes
             WHERE user_id = ?
             ORDER BY created_at DESC
             """,
@@ -493,6 +498,7 @@ def get_my_quizzes(user=Depends(get_current_user)):
                 "title": row["title"],
                 "description": row["description"],
                 "tags": row["tags"].split(",") if row["tags"] else [],
+                "view_count": row["view_count"] if row["view_count"] else 0,
                 "created_at": row["created_at"]
             })
     return quizzes

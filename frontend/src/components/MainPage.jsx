@@ -112,7 +112,10 @@ function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
         </button>
       </div>
       <div className="card-body">
-        <h2>{quiz.title}</h2>
+        <div className="card-title-row">
+          <h2>{quiz.title}</h2>
+          {quiz.viewCount > 0 && <span className="card-view-count">👁 {quiz.viewCount}</span>}
+        </div>
         <div className="card-meta">
           <span>{quiz.category}</span>
           <span>
@@ -280,6 +283,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
           likeCount: q.like_count ?? 0,
           author: q.author || '',
           tags: q.tags || [],
+          viewCount: q.view_count ?? 0,
         }));
         setAllQuizzes(mapped);
         const counts = {};
