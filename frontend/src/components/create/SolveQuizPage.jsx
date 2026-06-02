@@ -4,6 +4,65 @@ import { getQuiz } from '../../api/quizzes.js';
 import Header from '../common/Header.jsx';
 import './SolveQuiz.css';
 
+function getAudioContext() {
+  if (!window._quizzlyAudioCtx) {
+    window._quizzlyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return window._quizzlyAudioCtx;
+}
+
+function playTick() {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.1);
+  } catch {}
+}
+
+function playCorrect() {
+  try {
+    const ctx = getAudioContext();
+    [523, 659, 784].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.2);
+      osc.start(ctx.currentTime + i * 0.12);
+      osc.stop(ctx.currentTime + i * 0.12 + 0.2);
+    });
+  } catch {}
+}
+
+function playWrong() {
+  try {
+    const ctx = getAudioContext();
+    [330, 220].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.18);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.25);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.25);
+    });
+  } catch {}
+}
+
 const TEXT = {
   home: 'Quizzly',
   exit: '나가기',
@@ -212,13 +271,14 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   const [loadError, setLoadError] = useState('');
   const [view, setView] = useState('playing');
   const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [results, setResults] = useState([]);
   const [timeLeft, setTimeLeft] = useState(20);
   const timerRef = useRef(null);
+  const questionStates = useRef({});
 
   useEffect(() => {
     if (!id) return;
@@ -232,6 +292,8 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
             timeLimit: q.time_limit ?? q.timeLimit ?? 20,
             options: q.options || [],
             answer: q.answer ?? '',
+            answers: q.answers?.length ? q.answers.map(String) : (q.answer != null ? [String(q.answer)] : []),
+            explanation: q.explanation || '',
             media: q.media || null,
           }));
         if (data.order_mode === 'random') {
@@ -246,10 +308,15 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   const total = questions.length;
   const current = questions[index];
   const timeLimit = current?.timeLimit ?? 20;
+  const allNoTimer = questions.length > 0 && questions.every((q) => (q.timeLimit ?? 20) === 0);
 
   const isCorrect = useCallback(() => {
     if (!current) return false;
-    if (current.type === 'multiple') return selected === current.answer;
+    if (current.type === 'multiple') {
+      const correct = [...(current.answers ?? [])].sort();
+      const chosen = [...selected].sort();
+      return correct.length === chosen.length && correct.every((v, i) => v === chosen[i]);
+    }
     return inputValue.trim().toLowerCase() === String(current.answer).trim().toLowerCase();
   }, [current, selected, inputValue]);
 
@@ -258,8 +325,13 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     clearInterval(timerRef.current);
     const correct = isCorrect();
     setSubmitted(true);
-    if (correct) setScore((s) => s + 1);
-    setResults((r) => [...r, { id: current?.id, correct }]);
+    if (correct) {
+      setScore((s) => s + 1);
+      playCorrect();
+    } else {
+      playWrong();
+    }
+    setResults((r) => [...r, { id: current?.id, title: current?.title, correct }]);
   }, [submitted, isCorrect, current]);
 
   useEffect(() => {
@@ -283,6 +355,8 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
     if (timeLimit === 0) return;
     if (timeLeft === 0 && !submitted && view === 'playing') {
       handleSubmit();
+    } else if (timeLeft > 0 && timeLeft <= 5 && !submitted && view === 'playing') {
+      playTick();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft]);
@@ -310,20 +384,40 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   }
 
   const handleNext = () => {
+    questionStates.current[index] = { selected, inputValue, submitted };
     if (index + 1 >= total) {
+      const allAnswered = questions.every((_, i) => {
+        const state = questionStates.current[i];
+        return state?.submitted;
+      });
+      if (!allAnswered) {
+        alert('아직 풀지 않은 문제가 있어요!');
+        return;
+      }
       setView('result');
       return;
     }
+    const next = questionStates.current[index + 1];
     setIndex((i) => i + 1);
-    setSelected(null);
-    setInputValue('');
-    setSubmitted(false);
+    setSelected(next?.selected ?? []);
+    setInputValue(next?.inputValue ?? '');
+    setSubmitted(next?.submitted ?? false);
+  };
+
+  const handlePrev = () => {
+    if (index === 0) return;
+    questionStates.current[index] = { selected, inputValue, submitted };
+    const prev = questionStates.current[index - 1];
+    setIndex((i) => i - 1);
+    setSelected(prev?.selected ?? []);
+    setInputValue(prev?.inputValue ?? '');
+    setSubmitted(prev?.submitted ?? false);
   };
 
   const handleRetry = () => {
     setView('playing');
     setIndex(0);
-    setSelected(null);
+    setSelected([]);
     setInputValue('');
     setSubmitted(false);
     setScore(0);
@@ -331,7 +425,7 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
   };
 
   const canSubmit =
-    current?.type === 'multiple' ? selected !== null : inputValue.trim() !== '';
+    current?.type === 'multiple' ? selected.length > 0 : inputValue.trim() !== '';
 
   if (view === 'result') {
     const percent = Math.round((score / total) * 100);
@@ -351,6 +445,17 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
             <p className="result-count">
               {TEXT.correctCount} <strong>{score}</strong> / {total}
             </p>
+
+            <ul className="result-list">
+              {results.map((r, i) => (
+                <li key={r.id} className={`result-list-item ${r.correct ? 'correct' : 'wrong'}`}>
+                  <span className="result-list-num">{i + 1}</span>
+                  <span className="result-list-title">{r.title}</span>
+                  <span className="result-list-mark">{r.correct ? '⭕' : '❌'}</span>
+                </li>
+              ))}
+            </ul>
+
             <div className="result-actions">
               <button className="btn-ghost" type="button" onClick={handleRetry}>
                 {TEXT.retry}
@@ -403,13 +508,36 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
               />
             </div>
           )}
+          {allNoTimer && (
+            <div className="solve-question-nav">
+              {questions.map((_, i) => {
+                const state = questionStates.current[i];
+                const isCurrent = i === index;
+                const isAnswered = state?.submitted || (isCurrent && submitted);
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`solve-nav-btn${isCurrent ? ' current' : ''}${isAnswered ? ' answered' : ''}`}
+                    onClick={() => {
+                      questionStates.current[index] = { selected, inputValue, submitted };
+                      const target = questionStates.current[i];
+                      setIndex(i);
+                      setSelected(target?.selected ?? null);
+                      setInputValue(target?.inputValue ?? '');
+                      setSubmitted(target?.submitted ?? false);
+                    }}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* 문제 카드 */}
         <div className="solve-card">
-          <span className="solve-type-badge">
-            {current.type === 'multiple' ? '객관식' : '주관식'}
-          </span>
           <h1 className="solve-question-title">{current.title}</h1>
           {current.description && (
             <p className="solve-question-desc">{current.description}</p>
@@ -421,11 +549,14 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
           {current.type === 'multiple' && (
             <div className="solve-options">
               {current.options.map((opt) => {
+                const isMulti = (current.answers?.length ?? 0) > 1;
+                const isSelected = selected.includes(opt.id);
+                const isCorrectOpt = (current.answers ?? []).includes(opt.id);
                 let state = '';
                 if (submitted) {
-                  if (opt.id === current.answer) state = 'correct';
-                  else if (opt.id === selected) state = 'wrong';
-                } else if (opt.id === selected) {
+                  if (isCorrectOpt) state = 'correct';
+                  else if (isSelected) state = 'wrong';
+                } else if (isSelected) {
                   state = 'selected';
                 }
                 return (
@@ -434,9 +565,19 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
                     type="button"
                     className={`solve-option ${state}`}
                     disabled={submitted}
-                    onClick={() => setSelected(opt.id)}
+                    onClick={() => {
+                      if (isMulti) {
+                        setSelected((prev) =>
+                          prev.includes(opt.id)
+                            ? prev.filter((v) => v !== opt.id)
+                            : [...prev, opt.id]
+                        );
+                      } else {
+                        setSelected([opt.id]);
+                      }
+                    }}
                   >
-                    <span className="solve-option-mark">{opt.id.toUpperCase()}</span>
+                    <span className="solve-option-mark">{Number(opt.id) + 1}</span>
                     <span className="solve-option-text">{opt.text}</span>
                   </button>
                 );
@@ -476,10 +617,21 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
                   {TEXT.answerLabel}:{' '}
                   <strong>
                     {current.type === 'multiple'
-                      ? current.options.find((o) => o.id === current.answer)?.text
+                      ? (current.answers ?? [])
+                          .map((aid) => {
+                            const opt = current.options.find((o) => o.id === aid);
+                            if (!opt) return null;
+                            const circled = ['①','②','③','④','⑤'];
+                            return circled[Number(opt.id)] ?? `${Number(opt.id) + 1}`;
+                          })
+                          .filter(Boolean)
+                          .join(', ')
                       : current.answer}
                   </strong>
                 </p>
+              )}
+              {current.explanation && (
+                <p className="solve-feedback-explanation">{current.explanation}</p>
               )}
             </div>
           )}
@@ -487,15 +639,27 @@ export default function SolveQuizPage({ isLoggedIn, onLogout }) {
 
         {/* 하단 버튼 */}
         <div className="solve-footer">
-          {!submitted ? (
-            <button
-              className="btn-primary"
-              type="button"
-              disabled={!canSubmit}
-              onClick={handleSubmit}
-            >
-              {TEXT.submit}
+          {allNoTimer && index > 0 && (
+            <button className="btn-ghost solve-footer-prev" type="button" onClick={handlePrev}>
+              이전
             </button>
+          )}
+          {!submitted ? (
+            <div className="solve-footer-right">
+              <button
+                className="btn-primary"
+                type="button"
+                disabled={!canSubmit}
+                onClick={handleSubmit}
+              >
+                {TEXT.submit}
+              </button>
+              {allNoTimer && (
+                <button className="btn-ghost" type="button" onClick={handleNext}>
+                  {index + 1 >= total ? TEXT.showResult : TEXT.next}
+                </button>
+              )}
+            </div>
           ) : (
             <button className="btn-primary" type="button" onClick={handleNext}>
               {index + 1 >= total ? TEXT.showResult : TEXT.next}

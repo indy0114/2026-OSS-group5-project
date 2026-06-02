@@ -123,6 +123,20 @@ def init_db():
             """
         )
 
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS likes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                quiz_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(quiz_id, user_id)
+            )
+            """
+        )
+
         # 기존 quizzes 테이블에 빠진 컬럼이 있으면 추가 (데이터 보존 마이그레이션)
         existing_columns = {
             row["name"]
@@ -196,6 +210,7 @@ def row_to_quiz(row, include_questions=False):
         "order_mode": row["order_mode"] if "order_mode" in keys else "random",
         "tags": row["tags"].split(",") if ("tags" in keys and row["tags"]) else [],
         "question_count": len(questions),
+        "like_count": row["like_count"] if "like_count" in keys else 0,
         "created_at": row["created_at"],
     }
     if "author" in keys:
@@ -246,6 +261,15 @@ def get_current_user(authorization: str | None = Header(default=None)):
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/api/auth/check-username")
+def check_username(username: str):
+    with get_connection() as connection:
+        existing = connection.execute(
+            "SELECT id FROM users WHERE username = ?", (username.strip(),)
+        ).fetchone()
+    return {"available": existing is None}
 
 
 @app.post("/api/auth/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
@@ -355,10 +379,13 @@ def list_quizzes():
     with get_connection() as connection:
         rows = connection.execute(
             """
-            SELECT quizzes.*, users.username AS author
+            SELECT quizzes.*, users.username AS author,
+                COUNT(likes.id) AS like_count
             FROM quizzes
             JOIN users ON users.id = quizzes.user_id
+            LEFT JOIN likes ON likes.quiz_id = quizzes.id
             WHERE quizzes.visibility = 'public'
+            GROUP BY quizzes.id
             ORDER BY quizzes.created_at DESC
             """
         ).fetchall()
@@ -370,10 +397,13 @@ def get_quiz(quiz_id: int):
     with get_connection() as connection:
         row = connection.execute(
             """
-            SELECT quizzes.*, users.username AS author
+            SELECT quizzes.*, users.username AS author,
+                COUNT(likes.id) AS like_count
             FROM quizzes
             JOIN users ON users.id = quizzes.user_id
+            LEFT JOIN likes ON likes.quiz_id = quizzes.id
             WHERE quizzes.id = ?
+            GROUP BY quizzes.id
             """,
             (quiz_id,),
         ).fetchone()
@@ -382,6 +412,66 @@ def get_quiz(quiz_id: int):
         raise HTTPException(status_code=404, detail="퀴즈를 찾을 수 없습니다.")
 
     return row_to_quiz(row, include_questions=True)
+
+@app.post("/api/quizzes/{quiz_id}/like")
+def toggle_like(quiz_id: int, user=Depends(get_current_user)):
+    with get_connection() as connection:
+        quiz_exists = connection.execute(
+            "SELECT id FROM quizzes WHERE id = ?", (quiz_id,)
+        ).fetchone()
+        if not quiz_exists:
+            raise HTTPException(status_code=404, detail="퀴즈를 찾을 수 없습니다.")
+
+        existing = connection.execute(
+            "SELECT id FROM likes WHERE quiz_id = ? AND user_id = ?",
+            (quiz_id, user["id"]),
+        ).fetchone()
+
+        if existing:
+            connection.execute(
+                "DELETE FROM likes WHERE quiz_id = ? AND user_id = ?",
+                (quiz_id, user["id"]),
+            )
+            liked = False
+        else:
+            connection.execute(
+                "INSERT INTO likes (quiz_id, user_id, created_at) VALUES (?, ?, ?)",
+                (quiz_id, user["id"], utc_now()),
+            )
+            liked = True
+
+        like_count = connection.execute(
+            "SELECT COUNT(*) FROM likes WHERE quiz_id = ?", (quiz_id,)
+        ).fetchone()[0]
+
+    return {"liked": liked, "like_count": like_count}
+
+@app.get("/api/users/me/likes")
+def get_my_likes(user=Depends(get_current_user)):
+    with get_connection() as connection:
+        rows = connection.execute(
+            "SELECT quiz_id FROM likes WHERE user_id = ?", (user["id"],)
+        ).fetchall()
+    return {"liked_ids": [row["quiz_id"] for row in rows]}
+
+@app.get("/api/users/me/liked-quizzes")
+def get_my_liked_quizzes(user=Depends(get_current_user)):
+    with get_connection() as connection:
+        rows = connection.execute(
+            """
+            SELECT quizzes.*, users.username AS author,
+                COUNT(l2.id) AS like_count
+            FROM likes l1
+            JOIN quizzes ON quizzes.id = l1.quiz_id
+            JOIN users ON users.id = quizzes.user_id
+            LEFT JOIN likes l2 ON l2.quiz_id = quizzes.id
+            WHERE l1.user_id = ?
+            GROUP BY quizzes.id
+            ORDER BY l1.created_at DESC
+            """,
+            (user["id"],),
+        ).fetchall()
+    return [row_to_quiz(row) for row in rows]
 
 @app.get("/api/users/me/quizzes")
 def get_my_quizzes(user=Depends(get_current_user)): 

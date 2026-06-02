@@ -116,12 +116,15 @@
   font-size: clamp(20px, 4vw, 26px);
   font-weight: 900;
   line-height: 1.4;
+  word-break: keep-all;
 }
 
 .solve-question-desc {
   margin: 10px 0 0;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
+  white-space: pre-wrap;
+  word-break: keep-all;
   color: var(--muted);
 }
 
@@ -402,6 +405,18 @@
   color: var(--wrong);
 }
 
+.solve-feedback-explanation {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  background: rgba(0,0,0,0.04);
+  border-radius: 6px;
+  padding: 8px 10px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
 .solve-feedback-answer {
   margin: 8px 0 0;
   font-size: 14px;
@@ -409,11 +424,61 @@
   color: var(--navy);
 }
 
+/* ── 문제 번호 네비게이션 ────────────────────── */
+.solve-question-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.solve-nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: var(--white);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.solve-nav-btn.current {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--white);
+}
+
+.solve-nav-btn.answered {
+  border-color: var(--correct);
+  color: var(--correct);
+}
+
+.solve-nav-btn.current.answered {
+  background: var(--correct);
+  border-color: var(--correct);
+  color: var(--white);
+}
+
 /* ── 하단 버튼 ────────────────────── */
 .solve-footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
   margin-top: 26px;
+}
+
+.solve-footer-prev {
+  margin-right: 0;
+}
+
+.solve-footer-right {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
 }
 
 .btn-primary {
@@ -531,6 +596,49 @@
 .result-count strong {
   color: var(--navy);
   font-size: 20px;
+}
+
+.result-list {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.result-list-item.correct {
+  background: var(--correct-bg);
+}
+
+.result-list-item.wrong {
+  background: var(--wrong-bg);
+}
+
+.result-list-num {
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 20px;
+}
+
+.result-list-title {
+  flex: 1;
+  color: var(--navy);
+  text-align: left;
+}
+
+.result-list-mark {
+  font-size: 16px;
 }
 
 .result-actions {
