@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoUrl from '../assets/quizzly-logo-cropped.png';
 import { getQuizzes, toggleLike, getMyLikes } from '../api/quizzes.js';
@@ -69,6 +69,27 @@ function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
   );
 }
 
+/* Meta Chip with tooltip */
+function MetaChip({ text }) {
+  const innerRef = useRef(null);
+  const [truncated, setTruncated] = useState(false);
+  const [show, setShow] = useState(false);
+
+  const handleMouseEnter = () => {
+    if (innerRef.current && innerRef.current.scrollWidth > innerRef.current.clientWidth) {
+      setTruncated(true);
+      setShow(true);
+    }
+  };
+
+  return (
+    <span className="meta-tip" onMouseEnter={handleMouseEnter} onMouseLeave={() => setShow(false)}>
+      <span className="meta-tip-inner" ref={innerRef}>{text}</span>
+      {show && truncated && <div className="meta-tip-box">{text}</div>}
+    </span>
+  );
+}
+
 /* Heart Icon */
 function HeartIcon({ filled }) {
   return (
@@ -112,14 +133,14 @@ function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
         </button>
       </div>
       <div className="card-body">
-        <h2>{quiz.title}</h2>
+        <div className="card-title-row">
+          <h2>{quiz.title}</h2>
+          {quiz.viewCount > 0 && <span className="card-view-count">👁 {quiz.viewCount}</span>}
+        </div>
         <div className="card-meta">
-          <span>{quiz.category}</span>
-          <span>
-            {quiz.questionCount}
-            {TEXT.questionUnit}
-          </span>
-          {quiz.author && <span>{quiz.author}</span>}
+          <MetaChip text={quiz.category} />
+          <span>{quiz.questionCount}{TEXT.questionUnit}</span>
+          {quiz.author && <MetaChip text={quiz.author} />}
         </div>
         <p>{quiz.description}</p>
       </div>
@@ -128,11 +149,56 @@ function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
 }
 
 /* Quiz Section */
+function CustomSelect({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="custom-select" ref={ref}>
+      <button
+        type="button"
+        className="custom-select-btn"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {current?.label}
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="custom-select-options">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              className={`custom-select-option${o.value === value ? ' active' : ''}`}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function QuizSection({
   activeCategory,
   onCategoryChange,
   query,
   onQueryChange,
+  searchType,
+  onSearchTypeChange,
   sortOrder,
   onSortOrderChange,
   quizzes,
@@ -141,65 +207,52 @@ function QuizSection({
   likedIds,
   likeCounts,
   onLike,
+  allCategories,
 }) {
   const navigate = useNavigate();
-  const [isSortOpen, setIsSortOpen] = useState(false);
-  const currentSortText = sortOrder === 'name' ? TEXT.name : TEXT.latest;
- 
-  const handleSortChange = (nextSortOrder) => {
-    onSortOrderChange(nextSortOrder);
-    setIsSortOpen(false);
-  };
- 
+  const [categoryExpanded, setCategoryExpanded] = useState(false);
+  const withoutEtc = allCategories.filter((c) => c !== TEXT.etc);
+  const visibleCategories = categoryExpanded
+    ? allCategories
+    : [...withoutEtc.slice(0, 9), TEXT.etc];
+
   return (
     <section className="quiz-section" id="quiz-list" aria-label={TEXT.quizList}>
       <div className="quiz-toolbar">
-        <label className="search-field">
-          <span className="sr-only">{TEXT.search}</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder={TEXT.placeholder}
+        <div className="search-field-wrap">
+          <CustomSelect
+            value={searchType}
+            onChange={onSearchTypeChange}
+            options={[
+              { value: 'all', label: '전체' },
+              { value: 'title', label: '제목' },
+              { value: 'author', label: '작성자' },
+              { value: 'tag', label: '카테고리' },
+            ]}
           />
-        </label>
- 
-        <div className="sort-menu" aria-label={TEXT.sortLabel}>
-          <button
-            className="sort-button"
-            type="button"
-            onClick={() => setIsSortOpen((isOpen) => !isOpen)}
-            aria-expanded={isSortOpen}
-            aria-haspopup="menu"
-          >
-            {currentSortText}
-          </button>
- 
-          {isSortOpen && (
-            <div className="sort-options" role="menu">
-              <button
-                className={sortOrder === 'latest' ? 'sort-option active' : 'sort-option'}
-                type="button"
-                onClick={() => handleSortChange('latest')}
-                role="menuitem"
-              >
-                {TEXT.latest}
-              </button>
-              <button
-                className={sortOrder === 'name' ? 'sort-option active' : 'sort-option'}
-                type="button"
-                onClick={() => handleSortChange('name')}
-                role="menuitem"
-              >
-                {TEXT.name}
-              </button>
-            </div>
-          )}
+          <label className="search-field">
+            <span className="sr-only">{TEXT.search}</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => onQueryChange(event.target.value)}
+              placeholder={TEXT.placeholder}
+            />
+          </label>
         </div>
+        <CustomSelect
+          value={sortOrder}
+          onChange={onSortOrderChange}
+          options={[
+            { value: 'latest', label: TEXT.latest },
+            { value: 'name', label: TEXT.name },
+            { value: 'views', label: '조회순' },
+          ]}
+        />
       </div>
- 
+
       <div className="category-list" aria-label={TEXT.category}>
-        {categories.map((category) => (
+        {visibleCategories.map((category) => (
           <button
             className={category === activeCategory ? 'category-chip active' : 'category-chip'}
             key={category}
@@ -209,6 +262,15 @@ function QuizSection({
             {category}
           </button>
         ))}
+        {allCategories.length > 10 && (
+          <button
+            className="category-chip category-more"
+            type="button"
+            onClick={() => setCategoryExpanded((v) => !v)}
+          >
+            {categoryExpanded ? '접기 ▲' : '더보기 ▼'}
+          </button>
+        )}
       </div>
  
       {loading ? (
@@ -241,6 +303,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
   const [activeCategory, setActiveCategory] = useState(TEXT.all);
   const [query, setQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('latest');
+  const [searchType, setSearchType] = useState('all');
 
   const [allQuizzes, setAllQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -264,6 +327,8 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
           createdAt: q.created_at,
           likeCount: q.like_count ?? 0,
           author: q.author || '',
+          tags: q.tags || [],
+          viewCount: q.view_count ?? 0,
         }));
         setAllQuizzes(mapped);
         const counts = {};
@@ -348,20 +413,36 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
     const visible = allQuizzes.filter((quiz) => {
       const matchesCategory = activeCategory === TEXT.all || quiz.category === activeCategory;
       const keyword = query.trim().toLowerCase();
-      const matchesQuery =
-        !keyword ||
-        quiz.title.toLowerCase().includes(keyword) ||
-        quiz.category.toLowerCase().includes(keyword);
+      const matchesQuery = !keyword || (() => {
+        const title = quiz.title.toLowerCase().includes(keyword);
+        const author = (quiz.author ?? '').toLowerCase().includes(keyword);
+        const category = (quiz.category ?? '').toLowerCase().includes(keyword);
+        if (searchType === 'title') return title;
+        if (searchType === 'author') return author;
+        if (searchType === 'tag') return category;
+        return title || author || category;
+      })();
  
       return matchesCategory && matchesQuery;
     });
  
     return [...visible].sort((a, b) => {
       if (sortOrder === 'name') return a.title.localeCompare(b.title, 'ko');
+      if (sortOrder === 'views') return (b.viewCount ?? 0) - (a.viewCount ?? 0);
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-  }, [allQuizzes, activeCategory, query, sortOrder]);
+  }, [allQuizzes, activeCategory, query, sortOrder, searchType]);
  
+  const allCategories = useMemo(() => {
+    const withoutEtc = categories.filter((c) => c !== TEXT.etc);
+    const custom = [...allQuizzes]
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .map((q) => q.category)
+      .filter((c) => c && !categories.includes(c));
+    const unique = [...new Set(custom)];
+    return [...withoutEtc, ...unique, TEXT.etc];
+  }, [allQuizzes]);
+
   return (
     <main>
       <HeroSection onCreateQuiz={onCreateQuiz} onSolveRandomQuiz={handleSolveRandomQuiz} />
@@ -370,6 +451,8 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
         onCategoryChange={setActiveCategory}
         query={query}
         onQueryChange={setQuery}
+        searchType={searchType}
+        onSearchTypeChange={setSearchType}
         sortOrder={sortOrder}
         onSortOrderChange={setSortOrder}
         quizzes={filteredQuizzes}
@@ -378,6 +461,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
         likedIds={likedIds}
         likeCounts={likeCounts}
         onLike={handleLike}
+        allCategories={allCategories}
       />
     </main>
   );

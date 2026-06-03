@@ -26,6 +26,22 @@
   margin: 10px auto 0;
 }
 
+.slide-card-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.slide-card-num {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-size: 16px;
+  font-weight: 900;
+  color: #4a6278;
+}
+
+
 .slide-card {
   position: relative;
   display: grid;
@@ -69,6 +85,8 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .slide-plus-icon {

@@ -204,12 +204,81 @@ button {
 }
 
 .quiz-toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 124px;
-  gap: 18px;
-  align-items: start;
+  display: flex;
+  gap: 8px;
+  align-items: center;
   width: min(100%, var(--quiz-content-max));
   margin: 0 auto;
+}
+
+.search-field-wrap {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+}
+
+.search-field-wrap {
+  flex: 1;
+}
+
+.search-field-wrap .search-field {
+  flex: 1;
+}
+
+.custom-select {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.custom-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100px;
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  justify-content: space-between;
+}
+
+.custom-select-options {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  z-index: 10;
+  min-width: 100%;
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: 0 10px 22px rgba(5, 34, 57, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-select-option {
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  background: var(--white);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.custom-select-option:hover,
+.custom-select-option.active {
+  background: #eef4f8;
 }
 
 .search-field input {
@@ -277,9 +346,15 @@ button {
 .category-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px 22px;
+  justify-content: space-between;
+  gap: 16px 12px;
   width: min(100%, var(--quiz-content-max));
   margin: 18px auto 26px;
+}
+
+.category-chip.category-more {
+  margin-left: auto;
+  min-width: 96px;
 }
 
 .category-chip {
@@ -304,6 +379,8 @@ button {
   color: var(--white);
 }
 
+
+
 .quiz-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -314,7 +391,7 @@ button {
 
 .quiz-card {
   min-height: 292px;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 10px;
   background: var(--white);
   box-shadow: var(--shadow);
@@ -376,6 +453,37 @@ button {
   padding: 12px 14px 16px;
 }
 
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.card-title-row h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.card-view-count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: #67798a;
+  white-space: nowrap;
+}
+
 .card-body h2 {
   margin: 0 0 8px;
   color: var(--navy);
@@ -391,8 +499,11 @@ button {
   margin-bottom: 9px;
 }
 
-.card-meta span {
+.meta-tip {
+  position: relative;
+  display: inline-flex;
   min-width: 52px;
+  max-width: 90px;
   padding: 5px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -402,12 +513,65 @@ button {
   text-align: center;
 }
 
+.meta-tip-inner {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.meta-tip-box {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 200;
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  min-width: unset;
+  max-width: unset;
+}
+
+.card-meta span {
+  min-width: 52px;
+  max-width: 90px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: #67798a;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-meta .meta-tip {
+  padding: 0;
+  border: none;
+  min-width: unset;
+  max-width: unset;
+  overflow: visible;
+}
+
 .card-body p {
   margin: 0;
   color: #a4afb9;
   font-size: 11px;
   font-weight: 700;
   line-height: 1.35;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* 반응형 */

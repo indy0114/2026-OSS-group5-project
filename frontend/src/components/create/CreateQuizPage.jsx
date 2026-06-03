@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import iconUrl from '../../assets/quizzly-icon.png';
+import { getQuizzes } from '../../api/quizzes.js';
 import './CreateQuiz.css';
 
 const TEXT = {
@@ -74,10 +75,10 @@ function fileToDataUrl(file) {
   });
 }
 
-function CreateHeader({ onCancel, onSave }) {
+function CreateHeader({ onCancel, onSave, onHome }) {
   return (
     <header className="site-header create-header">
-      <button className="header-logo create-header-logo" type="button" onClick={onCancel} aria-label={TEXT.home}>
+      <button className="header-logo create-header-logo" type="button" onClick={onHome} aria-label={TEXT.home}>
         <img src={iconUrl} alt="" />
       </button>
       <nav className="header-actions" aria-label={TEXT.quizCreate}>
@@ -204,7 +205,51 @@ function OrderIcon({ type }) {
   );
 }
 
-function SettingsStep({ form, onChange, onSave }) {
+
+function CustomSelect({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="create-custom-select" ref={ref}>
+      <button
+        type="button"
+        className="create-custom-select-btn"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {current?.label}
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="create-custom-select-options">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              className={`create-custom-select-option${o.value === value ? ' active' : ''}`}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SettingsStep({ form, onChange, onSave, allCategories }) {
   return (
     <section className="create-large-panel settings-panel" aria-label={TEXT.quizCreate}>
       <div className="panel-title-row">
@@ -232,15 +277,36 @@ function SettingsStep({ form, onChange, onSave }) {
             />
           </Field>
 
-          <Field label={TEXT.category}>
-            <select value={form.category} onChange={(event) => onChange('category', event.target.value)}>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <div className="create-field">
+            <span>{TEXT.category}</span>
+            {form.category === '__custom__' ? (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  placeholder="카테고리 직접 입력"
+                  autoFocus
+                  onChange={(e) => onChange('customCategory', e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => onChange('category', categories[0])}
+                  style={{ whiteSpace: 'nowrap', padding: '0 12px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--white)', cursor: 'pointer', fontSize: '13px' }}
+                >
+                  취소
+                </button>
+              </div>
+            ) : (
+              <CustomSelect
+                value={form.category}
+                onChange={(val) => onChange('category', val)}
+                options={[
+                  ...allCategories.map((c) => ({ value: c, label: c })),
+                  { value: '__custom__', label: '직접 입력...' },
+                ]}
+              />
+            )}
+          </div>
         </div>
 
         <div className="settings-right">
@@ -298,6 +364,26 @@ function SettingsStep({ form, onChange, onSave }) {
 
 function CreateQuizPage() {
   const navigate = useNavigate();
+  const [extraCategories, setExtraCategories] = useState([]);
+
+  useEffect(() => {
+    getQuizzes()
+      .then((data) => {
+        const custom = [...data]
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          .map((q) => q.category)
+          .filter((c) => c && !categories.includes(c));
+        setExtraCategories([...new Set(custom)]);
+      })
+      .catch(() => {});
+  }, []);
+
+  const allCategories = [
+    ...categories.filter((c) => c !== TEXT.etc),
+    ...extraCategories,
+    TEXT.etc,
+  ];
+
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -327,7 +413,11 @@ function CreateQuizPage() {
   }, []);
 
   const updateForm = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    if (key === 'customCategory') {
+      setForm((current) => ({ ...current, customCategory: value }));
+    } else {
+      setForm((current) => ({ ...current, [key]: value }));
+    }
   };
 
   const handleSave = async () => {
@@ -352,7 +442,9 @@ function CreateQuizPage() {
       ...(prev.editId ? { editId: prev.editId, questions: prev.questions } : {}),
       title: form.title.trim(),
       description: form.description.trim(),
-      category: form.category === TEXT.categoryPlaceholder ? null : form.category,
+      category: form.category === '__custom__'
+        ? (form.customCategory?.trim() || null)
+        : form.category === TEXT.categoryPlaceholder ? null : form.category,
       visibility: form.visibility,
       order: form.order,
       timeLimit: form.timeLimit,
@@ -364,14 +456,15 @@ function CreateQuizPage() {
 
   const handleCancel = () => {
     sessionStorage.removeItem('quizDraft');
+    window.scrollTo(0, 0);
     navigate(-1);
   };
  
   return (
     <div className="create-page">
-      <CreateHeader onCancel={handleCancel} onSave={handleSave} />
+      <CreateHeader onCancel={handleCancel} onSave={handleSave} onHome={() => { sessionStorage.removeItem('quizDraft'); navigate('/'); }} />
       <main className="create-main create-main-settings">
-        <SettingsStep form={form} onChange={updateForm} onSave={handleSave} />
+        <SettingsStep form={form} onChange={updateForm} onSave={handleSave} allCategories={allCategories} />
       </main>
     </div>
   );
