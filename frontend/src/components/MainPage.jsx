@@ -435,7 +435,8 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
  
   const allCategories = useMemo(() => {
     const withoutEtc = categories.filter((c) => c !== TEXT.etc);
-    const custom = allQuizzes
+    const custom = [...allQuizzes]
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
       .map((q) => q.category)
       .filter((c) => c && !categories.includes(c));
     const unique = [...new Set(custom)];

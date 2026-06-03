@@ -369,7 +369,8 @@ function CreateQuizPage() {
   useEffect(() => {
     getQuizzes()
       .then((data) => {
-        const custom = data
+        const custom = [...data]
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
           .map((q) => q.category)
           .filter((c) => c && !categories.includes(c));
         setExtraCategories([...new Set(custom)]);
