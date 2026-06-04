@@ -30,7 +30,7 @@ const TEXT = {
   etc: '기타',
   thumbnailAdd: '이미지 추가',
   thumbnailHint: '클릭하여 이미지를 업로드하세요.',
-  thumbnailSpec: '권장: 16:9 비율, 최대 5MB',
+  thumbnailSpec: '권장: 1:1 비율, 최대 5MB',
   thumbnailSizeError: '파일 크기가 5MB를 초과합니다. 다른 파일을 선택해주세요.',
   titleRequired: '제목을 입력해주세요.',
   timer: '문제 타이머',
