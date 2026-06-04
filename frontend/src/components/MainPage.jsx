@@ -207,14 +207,8 @@ function QuizSection({
   likedIds,
   likeCounts,
   onLike,
-  allCategories,
 }) {
   const navigate = useNavigate();
-  const [categoryExpanded, setCategoryExpanded] = useState(false);
-  const withoutEtc = allCategories.filter((c) => c !== TEXT.etc);
-  const visibleCategories = categoryExpanded
-    ? allCategories
-    : [...withoutEtc.slice(0, 9), TEXT.etc];
 
   return (
     <section className="quiz-section" id="quiz-list" aria-label={TEXT.quizList}>
@@ -252,7 +246,7 @@ function QuizSection({
       </div>
 
       <div className="category-list" aria-label={TEXT.category}>
-        {visibleCategories.map((category) => (
+        {categories.map((category) => (
           <button
             className={category === activeCategory ? 'category-chip active' : 'category-chip'}
             key={category}
@@ -262,15 +256,6 @@ function QuizSection({
             {category}
           </button>
         ))}
-        {allCategories.length > 10 && (
-          <button
-            className="category-chip category-more"
-            type="button"
-            onClick={() => setCategoryExpanded((v) => !v)}
-          >
-            {categoryExpanded ? '접기 ▲' : '더보기 ▼'}
-          </button>
-        )}
       </div>
  
       {loading ? (
@@ -433,16 +418,6 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
     });
   }, [allQuizzes, activeCategory, query, sortOrder, searchType]);
  
-  const allCategories = useMemo(() => {
-    const withoutEtc = categories.filter((c) => c !== TEXT.etc);
-    const custom = [...allQuizzes]
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      .map((q) => q.category)
-      .filter((c) => c && !categories.includes(c));
-    const unique = [...new Set(custom)];
-    return [...withoutEtc, ...unique, TEXT.etc];
-  }, [allQuizzes]);
-
   return (
     <main>
       <HeroSection onCreateQuiz={onCreateQuiz} onSolveRandomQuiz={handleSolveRandomQuiz} />
@@ -461,7 +436,6 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
         likedIds={likedIds}
         likeCounts={likeCounts}
         onLike={handleLike}
-        allCategories={allCategories}
       />
     </main>
   );

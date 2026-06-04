@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import iconUrl from '../../assets/quizzly-icon.png';
-import { getQuizzes } from '../../api/quizzes.js';
 import './CreateQuiz.css';
 
 const TEXT = {
@@ -75,10 +74,10 @@ function fileToDataUrl(file) {
   });
 }
 
-function CreateHeader({ onCancel, onSave, onHome }) {
+function CreateHeader({ onCancel, onSave }) {
   return (
     <header className="site-header create-header">
-      <button className="header-logo create-header-logo" type="button" onClick={onHome} aria-label={TEXT.home}>
+      <button className="header-logo create-header-logo" type="button" onClick={onCancel} aria-label={TEXT.home}>
         <img src={iconUrl} alt="" />
       </button>
       <nav className="header-actions" aria-label={TEXT.quizCreate}>
@@ -249,7 +248,7 @@ function CustomSelect({ value, onChange, options }) {
   );
 }
 
-function SettingsStep({ form, onChange, onSave, allCategories }) {
+function SettingsStep({ form, onChange, onSave }) {
   return (
     <section className="create-large-panel settings-panel" aria-label={TEXT.quizCreate}>
       <div className="panel-title-row">
@@ -277,36 +276,13 @@ function SettingsStep({ form, onChange, onSave, allCategories }) {
             />
           </Field>
 
-          <div className="create-field">
-            <span>{TEXT.category}</span>
-            {form.category === '__custom__' ? (
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="카테고리 직접 입력"
-                  autoFocus
-                  onChange={(e) => onChange('customCategory', e.target.value)}
-                  style={{ flex: 1 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => onChange('category', categories[0])}
-                  style={{ whiteSpace: 'nowrap', padding: '0 12px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--white)', cursor: 'pointer', fontSize: '13px' }}
-                >
-                  취소
-                </button>
-              </div>
-            ) : (
-              <CustomSelect
-                value={form.category}
-                onChange={(val) => onChange('category', val)}
-                options={[
-                  ...allCategories.map((c) => ({ value: c, label: c })),
-                  { value: '__custom__', label: '직접 입력...' },
-                ]}
-              />
-            )}
-          </div>
+          <Field label={TEXT.category}>
+            <CustomSelect
+              value={form.category}
+              onChange={(val) => onChange('category', val)}
+              options={categories.map((c) => ({ value: c, label: c }))}
+            />
+          </Field>
         </div>
 
         <div className="settings-right">
@@ -364,26 +340,6 @@ function SettingsStep({ form, onChange, onSave, allCategories }) {
 
 function CreateQuizPage() {
   const navigate = useNavigate();
-  const [extraCategories, setExtraCategories] = useState([]);
-
-  useEffect(() => {
-    getQuizzes()
-      .then((data) => {
-        const custom = [...data]
-          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-          .map((q) => q.category)
-          .filter((c) => c && !categories.includes(c));
-        setExtraCategories([...new Set(custom)]);
-      })
-      .catch(() => {});
-  }, []);
-
-  const allCategories = [
-    ...categories.filter((c) => c !== TEXT.etc),
-    ...extraCategories,
-    TEXT.etc,
-  ];
-
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -413,11 +369,7 @@ function CreateQuizPage() {
   }, []);
 
   const updateForm = (key, value) => {
-    if (key === 'customCategory') {
-      setForm((current) => ({ ...current, customCategory: value }));
-    } else {
-      setForm((current) => ({ ...current, [key]: value }));
-    }
+    setForm((current) => ({ ...current, [key]: value }));
   };
 
   const handleSave = async () => {
@@ -442,9 +394,7 @@ function CreateQuizPage() {
       ...(prev.editId ? { editId: prev.editId, questions: prev.questions } : {}),
       title: form.title.trim(),
       description: form.description.trim(),
-      category: form.category === '__custom__'
-        ? (form.customCategory?.trim() || null)
-        : form.category === TEXT.categoryPlaceholder ? null : form.category,
+      category: form.category === TEXT.categoryPlaceholder ? null : form.category,
       visibility: form.visibility,
       order: form.order,
       timeLimit: form.timeLimit,
@@ -462,9 +412,9 @@ function CreateQuizPage() {
  
   return (
     <div className="create-page">
-      <CreateHeader onCancel={handleCancel} onSave={handleSave} onHome={() => { sessionStorage.removeItem('quizDraft'); navigate('/'); }} />
+      <CreateHeader onCancel={handleCancel} onSave={handleSave} />
       <main className="create-main create-main-settings">
-        <SettingsStep form={form} onChange={updateForm} onSave={handleSave} allCategories={allCategories} />
+        <SettingsStep form={form} onChange={updateForm} onSave={handleSave} />
       </main>
     </div>
   );
