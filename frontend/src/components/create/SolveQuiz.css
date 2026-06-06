@@ -271,6 +271,21 @@
   white-space: nowrap;
 }
 
+/* 음량 조절 */
+.solve-media-yt-audio-volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.solve-media-yt-audio-volume input[type='range'] {
+  width: 90px;
+  height: 4px;
+  accent-color: #fff;
+  cursor: pointer;
+}
+
 /* ── 객관식 ───────────────────────── */
 .solve-options {
   display: grid;

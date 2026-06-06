@@ -119,7 +119,19 @@ function YoutubeEmbed({ ytId }) {
 function YoutubeAudioPlayer({ ytId }) {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [volume, setVolume] = useState(70);
   const iframeRef = useRef(null);
+
+  const sendCmd = (func, args = []) =>
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func, args }),
+      'https://www.youtube.com'
+    );
+
+  const handleVolume = (value) => {
+    setVolume(value);
+    sendCmd('setVolume', [value]);
+  };
 
   // ytId가 바뀌면 이전 iframe 제거 + 상태 초기화
   useEffect(() => {
@@ -158,23 +170,18 @@ function YoutubeAudioPlayer({ ytId }) {
       iframe.addEventListener('load', () => {
         setLoading(false);
         setPlaying(true);
+        sendCmd('setVolume', [volume]);
       });
       document.body.appendChild(iframe);
       iframeRef.current = iframe;
       return;
     }
 
-    const postCmd = (func) =>
-      iframeRef.current?.contentWindow?.postMessage(
-        JSON.stringify({ event: 'command', func, args: [] }),
-        'https://www.youtube.com'
-      );
-
     if (playing) {
-      postCmd('pauseVideo');
+      sendCmd('pauseVideo');
       setPlaying(false);
     } else {
-      postCmd('playVideo');
+      sendCmd('playVideo');
       setPlaying(true);
     }
   };
@@ -206,6 +213,19 @@ function YoutubeAudioPlayer({ ytId }) {
         <span className="solve-media-yt-audio-status">
           {loading ? '로딩 중...' : playing ? '음악 재생 중' : '재생 버튼을 누르세요'}
         </span>
+        <div className="solve-media-yt-audio-volume">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="white" aria-hidden="true">
+            <path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12z" />
+          </svg>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={volume}
+            onChange={(e) => handleVolume(Number(e.target.value))}
+            aria-label="음량 조절"
+          />
+        </div>
       </div>
     </div>
   );
