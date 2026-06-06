@@ -3,3 +3,7 @@ frontend/dist
 frontend/.env
 frontend/.env.local
 backend/.venv/
+backend/instance/*.db
+backend/app/__pycache__/
+**/__pycache__/
+*.pyc

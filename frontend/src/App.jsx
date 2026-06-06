@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 import Header from './components/common/Header.jsx';
 import Footer from './components/common/Footer.jsx';
@@ -11,12 +11,21 @@ import MyPage from './components/auth/MyPage.jsx';
 import CreateQuizPage from './components/create/CreateQuizPage.jsx';
 import AddQuizPage from './components/create/AddQuizPage.jsx';
 import SolveQuizPage from './components/create/SolveQuizPage.jsx';
+import HostGame from './components/game/HostGame.jsx';
+import PlayerGame from './components/game/PlayerGame.jsx';
 import { clearToken, getMe, getToken, logout } from './api/auth.js';
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // 라이브 게임 화면(호스트/참가자)에서는 Footer를 숨긴다.
+  const isGameRoute =
+    location.pathname.startsWith('/play') || location.pathname.startsWith('/host');
+  const hideFooter = isGameRoute;
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+
+  // 모바일 사용자의 강제 리다이렉션 로직을 제거하여 모든 페이지에 접근 가능하도록 수정함
 
   useEffect(() => {
     const initialToken = getToken();
@@ -134,6 +143,9 @@ function App() {
           }
         />
         <Route path="/solve/:id" element={<SolveQuizPage isLoggedIn={isLoggedIn} onLogout={handleLogout} />} />
+        <Route path="/host/:code" element={<HostGame />} />
+        <Route path="/play" element={<PlayerGame user={currentUser} />} />
+        <Route path="/play/:code" element={<PlayerGame user={currentUser} />} />
         <Route
           path="/mypage"
           element={
@@ -154,7 +166,7 @@ function App() {
           }
         />
       </Routes>
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   );
 }

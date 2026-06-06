@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { deleteAccount, getMe, getMyQuizzes, deleteQuiz, updateMe, getToken } from '../../api/auth.js';
+import { deleteAccount, getMe, getMyQuizzes, deleteQuiz, updateMe, getToken, checkUsername } from '../../api/auth.js';
 import { getQuiz, getLikedQuizzes } from '../../api/quizzes.js';
 import './MyPage.css';
 
@@ -11,6 +11,12 @@ const TEXT = {
   quizSection: '내 퀴즈 조회',
   likedSection: '좋아요한 퀴즈 조회',
   idLabel: '아이디',
+  checkId: '중복 확인',
+  idAvailable: '사용 가능한 아이디입니다.',
+  idTaken: '이미 사용 중인 아이디입니다.',
+  idRequired: '아이디를 입력해주세요.',
+  idSame: '현재 사용 중인 아이디입니다.',
+  idNeedCheck: '아이디 중복 확인을 해주세요.',
   emailLabel: '이메일',
   passwordLabel: '비밀번호',
   deleteButton: '계정삭제',
@@ -43,23 +49,52 @@ function UserInfo({ userInfo, onSave, onDeleteAccount }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({id: '', email: '', password: ''});
   const [showPassword, setShowPassword] = useState(false);
+  const [idStatus, setIdStatus] = useState(null);
 
   //수정
   const startEdit = () => {
     setDraft({ id: userInfo.id, email: userInfo.email, password: ''});
+    setIdStatus(null);
     setEditing(true);
   };
 
   //수정 취소
   const cancelEdit = () => {
+    setIdStatus(null);
     setEditing(false);
+  };
+
+  //아이디 중복 확인
+  const handleCheckId = async () => {
+    const value = draft.id.trim();
+    if (!value) {
+      setIdStatus('empty');
+      return;
+    }
+    //현재 본인 아이디는 그대로 사용 가능
+    if (value === userInfo.id) {
+      setIdStatus('same');
+      return;
+    }
+    try {
+      const available = await checkUsername(value);
+      setIdStatus(available ? 'available' : 'taken');
+    } catch {
+      setIdStatus(null);
+    }
   };
 
   //수정 저장
   const handleSave = async () => {
     const changes = {};
 
-    if (draft.id !== userInfo.id) changes.username = draft.id;
+    //아이디를 바꿨다면 중복 확인을 통과해야 저장 가능
+    if (draft.id.trim() !== userInfo.id && idStatus !== 'available') {
+      setIdStatus('need');
+      return;
+    }
+
+    if (draft.id.trim() !== userInfo.id) changes.username = draft.id.trim();
     if (draft.email !== userInfo.email) changes.email = draft.email;
     if (draft.password) changes.password = draft.password;
 
@@ -79,12 +114,30 @@ function UserInfo({ userInfo, onSave, onDeleteAccount }) {
     <>
       <div className="mypage-field">
         <label>{TEXT.idLabel}</label>
-        <input 
-          type="text" 
-          value={editing ? draft.id : userInfo.id} 
-          onChange={(e) => setDraft({ ...draft, id: e.target.value })} 
-          disabled={!editing} 
-        />
+        {editing ? (
+          <>
+            <div className="mypage-id-row">
+              <input
+                type="text"
+                value={draft.id}
+                onChange={(e) => {
+                  setDraft({ ...draft, id: e.target.value });
+                  setIdStatus(null);
+                }}
+              />
+              <button type="button" className="mypage-btn" onClick={handleCheckId}>
+                {TEXT.checkId}
+              </button>
+            </div>
+            {idStatus === 'available' && <p className="mypage-id-msg available">{TEXT.idAvailable}</p>}
+            {idStatus === 'taken' && <p className="mypage-id-msg taken">{TEXT.idTaken}</p>}
+            {idStatus === 'empty' && <p className="mypage-id-msg taken">{TEXT.idRequired}</p>}
+            {idStatus === 'same' && <p className="mypage-id-msg available">{TEXT.idSame}</p>}
+            {idStatus === 'need' && <p className="mypage-id-msg taken">{TEXT.idNeedCheck}</p>}
+          </>
+        ) : (
+          <input type="text" value={userInfo.id} disabled />
+        )}
       </div>
 
       <div className="mypage-field">

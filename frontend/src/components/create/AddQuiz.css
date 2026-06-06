@@ -246,13 +246,28 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .timer-chip.selected {
   border-color: #002d56;
   background: #002d56;
   color: #ffffff;
+}
+
+.timer-chip:hover {
+  transform: translateY(-1px);
+  border-color: #002d56;
+  box-shadow: 0 7px 14px rgba(0, 45, 86, 0.12);
+}
+
+.timer-chip:not(.selected):hover {
+  background: #f3f7fa;
 }
 
 /* 미디어 첨부 */

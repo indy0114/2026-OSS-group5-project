@@ -1,0 +1,570 @@
+.game-host,
+.game-player {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 32px 20px;
+  box-sizing: border-box;
+  text-align: center;
+  font-family: inherit;
+}
+
+.game-host {
+  background: linear-gradient(160deg, #062a4e 0%, #0a3a6b 60%, #08509a 100%);
+  color: #ffffff;
+}
+
+.game-primary-btn {
+  min-width: 220px;
+  padding: 16px 28px;
+  border: 0;
+  border-radius: 14px;
+  background: #ffd23f;
+  color: #052038;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #c9a521;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.game-primary-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #c9a521;
+}
+
+.game-primary-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #c9a521;
+}
+
+.game-primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.game-text-btn {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ===== 호스트 대기실 ===== */
+.game-lobby-title {
+  font-size: 40px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.game-pin-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 48px;
+  background: #ffffff;
+  color: #052038;
+  border-radius: 20px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+}
+
+.game-pin-label {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.game-pin {
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: 10px;
+  line-height: 1;
+}
+
+.game-join-hint {
+  font-size: 13px;
+  color: #5a6776;
+  margin-top: 4px;
+}
+
+.game-qr {
+  background: #fff;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.game-player-count {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.game-player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  max-width: 800px;
+}
+
+.game-player-chip {
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.game-waiting {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+}
+
+/* ===== 호스트 문제 화면 ===== */
+.game-question-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, 900px);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.game-timer-badge {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ffd23f;
+  color: #052038;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.game-question-title {
+  font-size: 34px;
+  font-weight: 900;
+  max-width: 1000px;
+  margin: 12px 0;
+}
+
+.game-options-grid,
+.game-player-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: min(100%, 900px);
+}
+
+.game-option,
+.game-player-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 26px 22px;
+  border: 0;
+  border-radius: 14px;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+  text-align: left;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.game-option-shape {
+  font-size: 26px;
+}
+
+.game-option-text {
+  flex: 1;
+}
+
+/* ===== 호스트 정답 공개 ===== */
+.game-reveal-answer {
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.game-dist-grid {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 28px;
+  height: 200px;
+}
+
+.game-dist-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-dist-bar {
+  width: 70px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6px;
+  border-radius: 8px 8px 0 0;
+  color: #fff;
+  font-weight: 900;
+  opacity: 0.45;
+  transition: height 0.5s ease;
+}
+
+.game-dist-bar.correct {
+  opacity: 1;
+  box-shadow: 0 0 0 4px #ffffff;
+}
+
+.game-dist-shape {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.game-mini-board {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(100%, 460px);
+}
+
+.game-mini-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.game-mini-rank {
+  width: 28px;
+  color: #ffd23f;
+}
+
+.game-mini-name {
+  flex: 1;
+  text-align: left;
+}
+
+/* ===== 시상대 ===== */
+.game-over-title {
+  font-size: 40px;
+  font-weight: 900;
+}
+
+.game-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 18px;
+  height: 280px;
+}
+
+.game-podium-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 160px;
+}
+
+.game-podium-slot.empty {
+  opacity: 0;
+}
+
+.game-podium-medal {
+  font-size: 44px;
+}
+
+.game-podium-name {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.game-podium-bar {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  border-radius: 12px 12px 0 0;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.game-podium-slot.rank-1 .game-podium-bar {
+  height: 180px;
+  background: linear-gradient(180deg, #ffd23f, #e0a500);
+}
+
+.game-podium-slot.rank-2 .game-podium-bar {
+  height: 130px;
+  background: linear-gradient(180deg, #d7dee6, #9fb0c0);
+}
+
+.game-podium-slot.rank-3 .game-podium-bar {
+  height: 90px;
+  background: linear-gradient(180deg, #e9a36b, #c97c3f);
+}
+
+.game-podium-score {
+  font-size: 24px;
+  font-weight: 900;
+  color: #052038;
+}
+
+/* ===== 참가자 ===== */
+.game-player {
+  background: linear-gradient(160deg, #0a3a6b, #062a4e);
+  color: #ffffff;
+}
+
+.game-join-logo {
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.game-join-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(100%, 360px);
+  padding: 28px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+}
+
+.game-join-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  color: #052038;
+  font-weight: 800;
+}
+
+.game-join-field input {
+  height: 48px;
+  padding: 0 14px;
+  border: 2px solid #c3ccd6;
+  border-radius: 10px;
+  font-size: 18px;
+}
+
+.game-join-field input:focus {
+  outline: none;
+  border-color: #0a3a6b;
+}
+
+.game-join-error {
+  color: #e8482b;
+  font-weight: 700;
+  margin: 0;
+}
+
+.game-player-wait,
+.game-player-result,
+.game-player-final {
+  gap: 14px;
+}
+
+.game-wait-nick {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.game-wait-msg {
+  font-size: 28px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.game-wait-sub {
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+.game-spinner {
+  width: 46px;
+  height: 46px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffd23f;
+  border-radius: 50%;
+  animation: game-spin 0.9s linear infinite;
+}
+
+@keyframes game-spin {
+  to { transform: rotate(360deg); }
+}
+
+.game-player-qhint {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+/* 문제 본문(제목/설명/이미지) — 참가자 화면 */
+.game-q-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 600px);
+}
+
+.game-q-title {
+  font-size: 24px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.game-q-desc {
+  align-self: stretch;
+  text-align: left;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.game-q-image {
+  width: min(100%, 460px);
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* 문제 본문 이미지/설명 — 호스트 화면 */
+.game-question-desc {
+  text-align: left;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.game-question-image {
+  width: min(100%, 560px);
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+
+.game-player-option {
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.08s ease;
+}
+
+.game-player-option:hover {
+  filter: brightness(1.08);
+}
+
+.game-player-option:active {
+  transform: scale(0.96);
+}
+
+.game-player-option.selected {
+  outline: 4px solid #ffffff;
+  outline-offset: -4px;
+  filter: brightness(1.12);
+}
+
+.game-short-input {
+  width: min(100%, 360px);
+  height: 54px;
+  padding: 0 16px;
+  border: 2px solid #c3ccd6;
+  border-radius: 12px;
+  font-size: 20px;
+}
+
+/* 정답/오답 결과 */
+.game-player-result.correct { background: linear-gradient(160deg, #1f8b3a, #0c5e22); }
+.game-player-result.wrong { background: linear-gradient(160deg, #c0392b, #7d1c12); }
+
+.game-result-icon {
+  font-size: 80px;
+  animation: game-pop 0.35s ease;
+}
+
+.game-result-text {
+  font-size: 36px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.game-result-delta {
+  font-size: 30px;
+  font-weight: 900;
+  color: #ffd23f;
+  margin: 0;
+  animation: game-pop 0.4s ease;
+}
+
+.game-result-streak {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.game-result-rankbox {
+  display: flex;
+  gap: 18px;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 20px;
+}
+
+.game-final-medal {
+  font-size: 90px;
+  animation: game-pop 0.5s ease;
+}
+
+.game-final-rank {
+  font-size: 44px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.game-final-score {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffd23f;
+  margin: 0;
+}
+
+/* ===== 애니메이션 ===== */
+.game-pop {
+  animation: game-pop 0.3s ease;
+}
+
+@keyframes game-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 600px) {
+  .game-options-grid,
+  .game-player-options {
+    grid-template-columns: 1fr;
+  }
+  .game-question-title { font-size: 24px; }
+  .game-pin { font-size: 48px; letter-spacing: 6px; }
+}

@@ -131,6 +131,30 @@
   border-color: var(--navy);
 }
 
+/* 아이디 입력 + 중복 확인 버튼 */
+.mypage-id-row {
+  display: flex;
+  gap: 8px;
+}
+
+.mypage-id-row input {
+  flex: 1;
+}
+
+.mypage-id-msg {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mypage-id-msg.available {
+  color: #1f8b3a;
+}
+
+.mypage-id-msg.taken {
+  color: #e8482b;
+}
+
 .mypage-field .password-row {
   position: relative;
   display: flex;

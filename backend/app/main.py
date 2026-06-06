@@ -7,9 +7,11 @@ import secrets
 import sqlite3
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, Field
+
+from .game import create_room, game_ws_handler
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,6 +26,8 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ],
+    # LAN IP·ngrok 등 다른 기기에서 접속하는 시연 환경을 허용한다.
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,6 +76,10 @@ class QuizCreateRequest(BaseModel):
     # [{ id, type:'multiple'|'short', title, description, timeLimit,
     #    options:[{id,text}], answer }, ...]
     questions: list[dict] = Field(default_factory=list)
+
+class CreateGameRequest(BaseModel):
+    quiz_id: int
+
 
 def get_connection():
     INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
@@ -197,6 +205,24 @@ def row_to_user(row):
         "created_at": row["created_at"],
     }
 
+def is_live_enabled(questions):
+    """라이브(실시간) 모드 가능 여부.
+
+    모든 문제에 시간제한이 있고(>0), 영상·음악 첨부가 없어야 한다.
+    영상/음악은 실시간 동시 재생이 어려워 라이브에서 제외한다(사진은 허용).
+    """
+    if not questions:
+        return False
+    for q in questions:
+        time_limit = q.get("timeLimit") or q.get("time_limit") or 0
+        if not (isinstance(time_limit, (int, float)) and time_limit > 0):
+            return False
+        media = q.get("media") or {}
+        if media.get("video") or media.get("audio"):
+            return False
+    return True
+
+
 def row_to_quiz(row, include_questions=False):
     keys = row.keys()
     questions = json.loads(row["questions"]) if "questions" in keys and row["questions"] else []
@@ -211,6 +237,7 @@ def row_to_quiz(row, include_questions=False):
         "order_mode": row["order_mode"] if "order_mode" in keys else "random",
         "tags": row["tags"].split(",") if ("tags" in keys and row["tags"]) else [],
         "question_count": len(questions),
+        "live_enabled": is_live_enabled(questions),
         "like_count": row["like_count"] if "like_count" in keys else 0,
         "view_count": row["view_count"] if "view_count" in keys else 0,
         "created_at": row["created_at"],
@@ -598,3 +625,37 @@ def delete_me(user=Depends(get_current_user)):
         connection.execute("DELETE FROM users WHERE id = ?", (user["id"],))
 
     return {"message": "계정이 삭제되었습니다."}
+
+
+@app.post("/api/games", status_code=status.HTTP_201_CREATED)
+def create_game(payload: CreateGameRequest, user=Depends(get_current_user)):
+    # 조회수를 올리지 않고 문제 본문만 읽어 방을 만든다.
+    with get_connection() as connection:
+        row = connection.execute(
+            "SELECT id, title, questions FROM quizzes WHERE id = ?",
+            (payload.quiz_id,),
+        ).fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="퀴즈를 찾을 수 없습니다.")
+
+    questions = json.loads(row["questions"]) if row["questions"] else []
+    if not questions:
+        raise HTTPException(status_code=400, detail="문제가 없는 퀴즈입니다.")
+
+    if not is_live_enabled(questions):
+        raise HTTPException(
+            status_code=400,
+            detail="라이브는 모든 문제에 시간제한이 있고 영상·음악 첨부가 없어야 가능합니다.",
+        )
+
+    code = create_room(
+        {"title": row["title"], "questions": questions},
+        user["id"],
+    )
+    return {"code": code}
+
+
+@app.websocket("/ws/game/{code}")
+async def ws_game(websocket: WebSocket, code: str):
+    await game_ws_handler(websocket, code)

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoUrl from '../assets/quizzly-logo-cropped.png';
 import { getQuizzes, toggleLike, getMyLikes } from '../api/quizzes.js';
+import { createGame } from '../api/game.js';
 import './MainPage.css';
 
 const TEXT = {
@@ -47,9 +48,19 @@ const categories = [
 ];
 
 /* Hero Section */
-function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
+function HeroSection({ onCreateQuiz, onSolveRandomQuiz, onJoinGame }) {
   return (
     <section className="hero" aria-labelledby="home-title">
+      <span className="hero-decor hero-decor-pill" aria-hidden="true" />
+      <span className="hero-decor hero-decor-plus" aria-hidden="true" />
+      <span className="hero-decor hero-decor-ring hero-decor-ring-left" aria-hidden="true" />
+      <span className="hero-decor hero-decor-ring hero-decor-ring-right" aria-hidden="true" />
+      <span className="hero-decor hero-decor-dots hero-decor-dots-top" aria-hidden="true" />
+      <span className="hero-decor hero-decor-dots hero-decor-dots-bottom" aria-hidden="true" />
+      <span className="hero-decor hero-decor-stripes" aria-hidden="true" />
+      <span className="hero-decor hero-decor-bubble hero-decor-bubble-one" aria-hidden="true" />
+      <span className="hero-decor hero-decor-bubble hero-decor-bubble-two" aria-hidden="true" />
+      <span className="hero-decor hero-decor-bubble hero-decor-bubble-three" aria-hidden="true" />
       <h1 id="home-title" className="sr-only">
         Quizzly
       </h1>
@@ -60,6 +71,9 @@ function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
         </button>
         <button className="secondary-action" type="button" onClick={onSolveRandomQuiz}>
           {TEXT.solveQuiz}
+        </button>
+        <button className="secondary-action" type="button" onClick={onJoinGame}>
+          게임 참여
         </button>
       </div>
       <a className="scroll-cue" href="#quiz-list" aria-label={TEXT.goToList}>
@@ -107,7 +121,7 @@ function HeartIcon({ filled }) {
 }
 
 /* Quiz Card Section */
-function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
+function QuizCard({ quiz, onClick, liked, likeCount, onLike, onHostLive }) {
   return (
     <article className="quiz-card" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div
@@ -122,6 +136,16 @@ function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
             : undefined
         }
       >
+        {quiz.liveEnabled && (
+          <button
+            className="live-btn"
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onHostLive(quiz.id); }}
+            aria-label="실시간 게임 시작"
+          >
+            🎮 라이브
+          </button>
+        )}
         <button
           className={`like-btn${liked ? ' liked' : ''}`}
           type="button"
@@ -207,14 +231,9 @@ function QuizSection({
   likedIds,
   likeCounts,
   onLike,
-  allCategories,
+  onHostLive,
 }) {
   const navigate = useNavigate();
-  const [categoryExpanded, setCategoryExpanded] = useState(false);
-  const withoutEtc = allCategories.filter((c) => c !== TEXT.etc);
-  const visibleCategories = categoryExpanded
-    ? allCategories
-    : [...withoutEtc.slice(0, 9), TEXT.etc];
 
   return (
     <section className="quiz-section" id="quiz-list" aria-label={TEXT.quizList}>
@@ -252,7 +271,7 @@ function QuizSection({
       </div>
 
       <div className="category-list" aria-label={TEXT.category}>
-        {visibleCategories.map((category) => (
+        {categories.map((category) => (
           <button
             className={category === activeCategory ? 'category-chip active' : 'category-chip'}
             key={category}
@@ -262,15 +281,6 @@ function QuizSection({
             {category}
           </button>
         ))}
-        {allCategories.length > 10 && (
-          <button
-            className="category-chip category-more"
-            type="button"
-            onClick={() => setCategoryExpanded((v) => !v)}
-          >
-            {categoryExpanded ? '접기 ▲' : '더보기 ▼'}
-          </button>
-        )}
       </div>
  
       {loading ? (
@@ -289,6 +299,7 @@ function QuizSection({
               liked={likedIds.has(quiz.id)}
               likeCount={likeCounts[quiz.id] ?? quiz.likeCount ?? 0}
               onLike={onLike}
+              onHostLive={onHostLive}
             />
           ))}
         </div>
@@ -323,6 +334,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
           category: q.category || TEXT.etc,
           description: q.description || '',
           questionCount: q.question_count ?? 0,
+          liveEnabled: !!q.live_enabled,
           thumbnail: q.thumbnail || null,
           createdAt: q.created_at,
           likeCount: q.like_count ?? 0,
@@ -433,19 +445,26 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
     });
   }, [allQuizzes, activeCategory, query, sortOrder, searchType]);
  
-  const allCategories = useMemo(() => {
-    const withoutEtc = categories.filter((c) => c !== TEXT.etc);
-    const custom = [...allQuizzes]
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      .map((q) => q.category)
-      .filter((c) => c && !categories.includes(c));
-    const unique = [...new Set(custom)];
-    return [...withoutEtc, ...unique, TEXT.etc];
-  }, [allQuizzes]);
+  const handleHostLive = async (quizId) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const { code } = await createGame(quizId);
+      navigate(`/host/${code}`);
+    } catch (e) {
+      alert(e.message || '게임을 시작하지 못했어요.');
+    }
+  };
 
   return (
     <main>
-      <HeroSection onCreateQuiz={onCreateQuiz} onSolveRandomQuiz={handleSolveRandomQuiz} />
+      <HeroSection
+        onCreateQuiz={onCreateQuiz}
+        onSolveRandomQuiz={handleSolveRandomQuiz}
+        onJoinGame={() => navigate('/play')}
+      />
       <QuizSection
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
@@ -461,7 +480,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
         likedIds={likedIds}
         likeCounts={likeCounts}
         onLike={handleLike}
-        allCategories={allCategories}
+        onHostLive={handleHostLive}
       />
     </main>
   );

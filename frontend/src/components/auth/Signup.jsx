@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import logoUrl from '../../assets/quizzly-logo-cropped.png';
-import { signup } from '../../api/auth.js';
+import { signup, checkUsername } from '../../api/auth.js';
 import './Auth.css';
 
 const TEXT = {
@@ -37,9 +37,8 @@ function Signup({ onSignupSuccess }) {
       return;
     }
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/auth/check-username?username=${encodeURIComponent(form.id.trim())}`);
-      const data = await res.json();
-      setIdStatus(data.available ? 'available' : 'taken');
+      const available = await checkUsername(form.id.trim());
+      setIdStatus(available ? 'available' : 'taken');
     } catch {
       setIdStatus(null);
     }
