@@ -142,7 +142,7 @@ button {
   align-items: center;
   justify-content: center;
   gap: 20px;
-  width: min(640px, 84vw);
+  width: min(880px, 92vw);
   margin-top: clamp(24px, 5vh, 42px);
 }
 
@@ -396,6 +396,33 @@ button {
   border-radius: 9px;
   background: var(--muted);
   overflow: hidden;
+}
+
+/* 라이브 게임 시작 버튼 */
+.live-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 13px 8px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(232, 72, 43, 0.92);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s, transform 0.12s;
+  z-index: 1;
+}
+
+.live-btn:hover {
+  background: rgba(232, 72, 43, 1);
+  transform: scale(1.06);
 }
 
 /* 좋아요 버튼 */

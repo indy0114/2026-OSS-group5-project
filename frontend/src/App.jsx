@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 import Header from './components/common/Header.jsx';
 import Footer from './components/common/Footer.jsx';
@@ -11,12 +11,28 @@ import MyPage from './components/auth/MyPage.jsx';
 import CreateQuizPage from './components/create/CreateQuizPage.jsx';
 import AddQuizPage from './components/create/AddQuizPage.jsx';
 import SolveQuizPage from './components/create/SolveQuizPage.jsx';
+import HostGame from './components/game/HostGame.jsx';
+import PlayerGame from './components/game/PlayerGame.jsx';
 import { clearToken, getMe, getToken, logout } from './api/auth.js';
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // 라이브 게임 화면(호스트/참가자)에서는 Footer를 숨긴다.
+  const isGameRoute =
+    location.pathname.startsWith('/play') || location.pathname.startsWith('/host');
+  const hideFooter = isGameRoute;
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+
+  // 모바일(참가자)에서는 게임 화면만 노출한다. 게임 라우트가 아니면
+  // 입장 화면(/play)으로 돌려보내 데스크탑용 메인을 보지 않게 한다.
+  useEffect(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    if (isMobile && !isGameRoute) {
+      navigate('/play', { replace: true });
+    }
+  }, [location.pathname, isGameRoute, navigate]);
 
   useEffect(() => {
     const initialToken = getToken();
@@ -134,6 +150,9 @@ function App() {
           }
         />
         <Route path="/solve/:id" element={<SolveQuizPage isLoggedIn={isLoggedIn} onLogout={handleLogout} />} />
+        <Route path="/host/:code" element={<HostGame />} />
+        <Route path="/play" element={<PlayerGame user={currentUser} />} />
+        <Route path="/play/:code" element={<PlayerGame user={currentUser} />} />
         <Route
           path="/mypage"
           element={
@@ -154,7 +173,7 @@ function App() {
           }
         />
       </Routes>
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   );
 }

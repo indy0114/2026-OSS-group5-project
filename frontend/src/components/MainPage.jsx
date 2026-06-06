@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoUrl from '../assets/quizzly-logo-cropped.png';
 import { getQuizzes, toggleLike, getMyLikes } from '../api/quizzes.js';
+import { createGame } from '../api/game.js';
 import './MainPage.css';
 
 const TEXT = {
@@ -47,7 +48,7 @@ const categories = [
 ];
 
 /* Hero Section */
-function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
+function HeroSection({ onCreateQuiz, onSolveRandomQuiz, onJoinGame }) {
   return (
     <section className="hero" aria-labelledby="home-title">
       <h1 id="home-title" className="sr-only">
@@ -60,6 +61,9 @@ function HeroSection({ onCreateQuiz, onSolveRandomQuiz }) {
         </button>
         <button className="secondary-action" type="button" onClick={onSolveRandomQuiz}>
           {TEXT.solveQuiz}
+        </button>
+        <button className="secondary-action" type="button" onClick={onJoinGame}>
+          게임 참여
         </button>
       </div>
       <a className="scroll-cue" href="#quiz-list" aria-label={TEXT.goToList}>
@@ -107,7 +111,7 @@ function HeartIcon({ filled }) {
 }
 
 /* Quiz Card Section */
-function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
+function QuizCard({ quiz, onClick, liked, likeCount, onLike, onHostLive }) {
   return (
     <article className="quiz-card" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div
@@ -122,6 +126,16 @@ function QuizCard({ quiz, onClick, liked, likeCount, onLike }) {
             : undefined
         }
       >
+        {quiz.liveEnabled && (
+          <button
+            className="live-btn"
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onHostLive(quiz.id); }}
+            aria-label="실시간 게임 시작"
+          >
+            🎮 라이브
+          </button>
+        )}
         <button
           className={`like-btn${liked ? ' liked' : ''}`}
           type="button"
@@ -207,6 +221,7 @@ function QuizSection({
   likedIds,
   likeCounts,
   onLike,
+  onHostLive,
 }) {
   const navigate = useNavigate();
 
@@ -274,6 +289,7 @@ function QuizSection({
               liked={likedIds.has(quiz.id)}
               likeCount={likeCounts[quiz.id] ?? quiz.likeCount ?? 0}
               onLike={onLike}
+              onHostLive={onHostLive}
             />
           ))}
         </div>
@@ -308,6 +324,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
           category: q.category || TEXT.etc,
           description: q.description || '',
           questionCount: q.question_count ?? 0,
+          liveEnabled: !!q.live_enabled,
           thumbnail: q.thumbnail || null,
           createdAt: q.created_at,
           likeCount: q.like_count ?? 0,
@@ -418,9 +435,26 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
     });
   }, [allQuizzes, activeCategory, query, sortOrder, searchType]);
  
+  const handleHostLive = async (quizId) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const { code } = await createGame(quizId);
+      navigate(`/host/${code}`);
+    } catch (e) {
+      alert(e.message || '게임을 시작하지 못했어요.');
+    }
+  };
+
   return (
     <main>
-      <HeroSection onCreateQuiz={onCreateQuiz} onSolveRandomQuiz={handleSolveRandomQuiz} />
+      <HeroSection
+        onCreateQuiz={onCreateQuiz}
+        onSolveRandomQuiz={handleSolveRandomQuiz}
+        onJoinGame={() => navigate('/play')}
+      />
       <QuizSection
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
@@ -436,6 +470,7 @@ function MainPage({ onCreateQuiz, isLoggedIn }) {
         likedIds={likedIds}
         likeCounts={likeCounts}
         onLike={handleLike}
+        onHostLive={handleHostLive}
       />
     </main>
   );
