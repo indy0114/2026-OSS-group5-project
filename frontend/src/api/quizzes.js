@@ -6,8 +6,9 @@
 //   GET    /api/quizzes/{id}     퀴즈 단건 + 문제 (풀기 페이지)
 
 import { getToken } from './auth.js';
+import { apiBaseUrl } from './base.js';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = apiBaseUrl();
 
 async function handle(res) {
   if (!res.ok) {

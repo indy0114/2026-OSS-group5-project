@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
+import { apiBaseUrl } from './base.js';
+
+const API_BASE_URL = apiBaseUrl();
 const TOKEN_KEY = 'quizzly_access_token';
 const DEFAULT_ERROR_MESSAGE = '요청을 처리하지 못했습니다.';
 
@@ -68,6 +70,13 @@ export async function signup({ id, email, password }) {
 
   setToken(data.access_token);
   return data.user;
+}
+
+export async function checkUsername(username) {
+  const data = await request(
+    `/api/auth/check-username?username=${encodeURIComponent(username)}`
+  );
+  return !!data.available;
 }
 
 export async function login({ id, password }) {
