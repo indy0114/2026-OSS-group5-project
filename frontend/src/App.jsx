@@ -25,14 +25,7 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // 모바일(참가자)에서는 게임 화면만 노출한다. 게임 라우트가 아니면
-  // 입장 화면(/play)으로 돌려보내 데스크탑용 메인을 보지 않게 한다.
-  useEffect(() => {
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    if (isMobile && !isGameRoute) {
-      navigate('/play', { replace: true });
-    }
-  }, [location.pathname, isGameRoute, navigate]);
+  // 모바일 사용자의 강제 리다이렉션 로직을 제거하여 모든 페이지에 접근 가능하도록 수정함
 
   useEffect(() => {
     const initialToken = getToken();
