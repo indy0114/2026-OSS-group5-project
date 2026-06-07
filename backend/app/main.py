@@ -510,21 +510,30 @@ def get_my_quizzes(user=Depends(get_current_user)):
     with get_connection() as connection:
         rows = connection.execute(
             """
-            SELECT id, title, description, tags, view_count, created_at
+            SELECT quizzes.id, quizzes.title, quizzes.description, quizzes.thumbnail,
+                quizzes.category, quizzes.tags, quizzes.view_count, quizzes.questions,
+                quizzes.created_at, COUNT(likes.id) AS like_count
             FROM quizzes
-            WHERE user_id = ?
-            ORDER BY created_at DESC
+            LEFT JOIN likes ON likes.quiz_id = quizzes.id
+            WHERE quizzes.user_id = ?
+            GROUP BY quizzes.id
+            ORDER BY quizzes.created_at DESC
             """,
             (user["id"],),
         ).fetchall()
-        
+
         quizzes = []
         for row in rows:
+            questions = json.loads(row["questions"]) if row["questions"] else []
             quizzes.append({
                 "id": row["id"],
                 "title": row["title"],
                 "description": row["description"],
+                "thumbnail": row["thumbnail"] if row["thumbnail"] else None,
+                "category": row["category"] if row["category"] else None,
                 "tags": row["tags"].split(",") if row["tags"] else [],
+                "question_count": len(questions),
+                "like_count": row["like_count"] if row["like_count"] else 0,
                 "view_count": row["view_count"] if row["view_count"] else 0,
                 "created_at": row["created_at"]
             })

@@ -211,7 +211,18 @@ function UserInfo({ userInfo, onSave, onDeleteAccount }) {
 function QuizList({ quizzes, onDeleteQuiz, onEditQuiz }) {
   return quizzes.map((quiz) => (
     <div key={quiz.id} className="mypage-quiz-item">
-      <div className="mypage-quiz-thumbnail" />
+      <div
+        className="mypage-quiz-thumbnail"
+        style={
+          quiz.thumbnail
+            ? {
+                backgroundImage: `url(${quiz.thumbnail})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }
+            : undefined
+        }
+      />
       <div className="mypage-quiz-info">
         {quiz.title && (
           <div className="mypage-quiz-title-row">
@@ -219,13 +230,11 @@ function QuizList({ quizzes, onDeleteQuiz, onEditQuiz }) {
             {quiz.view_count > 0 && <span className="mypage-quiz-view-count">👁 {quiz.view_count}</span>}
           </div>
         )}
-        {quiz.tags.length > 0 && (
-          <div className="mypage-quiz-tags">
-            {quiz.tags.map((tag) => (
-              <span key={tag} className="mypage-quiz-tag">{tag}</span>
-            ))}
-          </div>
-        )}
+        <div className="mypage-quiz-tags">
+          {quiz.category && <span className="mypage-quiz-tag">{quiz.category}</span>}
+          <span className="mypage-quiz-tag">{quiz.question_count}문제</span>
+          <span className="mypage-quiz-tag liked-count-tag">♥ {quiz.like_count}</span>
+        </div>
         {quiz.description && <p className="mypage-quiz-desc">{quiz.description}</p>}
       </div>
       <div className="mypage-quiz-actions">
