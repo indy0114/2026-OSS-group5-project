@@ -14,8 +14,11 @@
 }
 
 .create-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: calc(100vh - 58px);
-  padding: 20px clamp(22px, 4vw, 150px);
+  padding: 34px clamp(22px, 4vw, 150px) 42px;
 }
 
 .create-large-panel {
@@ -87,6 +90,24 @@
   font-size: 12px;
   font-weight: 700;
   outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.create-field input:hover,
+.create-field textarea:hover,
+.create-field select:hover,
+.create-custom-select-btn:hover {
+  box-shadow: 0 6px 14px rgba(0, 45, 86, 0.1);
+}
+
+.create-field input:focus,
+.create-field textarea:focus,
+.create-field select:focus {
+  border-color: #967355;
+  box-shadow: 0 0 0 4px rgba(150, 115, 85, 0.18);
 }
 
 .create-field input,
@@ -141,6 +162,18 @@
   background: #d7dee6;
   color: #002d56;
   cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.thumbnail-dropzone:hover {
+  transform: translateY(-2px);
+  border-color: #002d56;
+  background: #e3eaf0;
+  box-shadow: 0 10px 22px rgba(0, 45, 86, 0.12);
 }
 
 .thumbnail-icon {
@@ -206,9 +239,13 @@
   color: #ffffff;
   font-size: 11px;
   cursor: pointer;
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease;
 }
 
 .thumbnail-remove:hover {
+  transform: scale(1.08);
   background: #c0392b;
 }
 
@@ -228,6 +265,15 @@
   background: #7f8b95;
   justify-self: start;
   padding: 0;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.visibility-switch:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 45, 86, 0.14);
 }
 
 .visibility-switch.active {
@@ -268,6 +314,16 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+.create-custom-select-btn:hover {
+  transform: translateY(-1px);
+  border-color: #002d56;
 }
 
 .create-custom-select-options {
@@ -319,13 +375,28 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .timer-chip.selected {
   border-color: #002d56;
   background: #002d56;
   color: #ffffff;
+}
+
+.timer-chip:hover {
+  transform: translateY(-1px);
+  border-color: #002d56;
+  box-shadow: 0 7px 14px rgba(0, 45, 86, 0.12);
+}
+
+.timer-chip:not(.selected):hover {
+  background: #f3f7fa;
 }
 
 /* 문제 출제 순서 */
@@ -364,10 +435,22 @@
   color: #002d56;
   text-align: left;
   cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .order-card.selected {
   border-color: #002d56;
+}
+
+.order-card:hover {
+  transform: translateY(-2px);
+  border-color: #002d56;
+  background: #f6f9fb;
+  box-shadow: 0 10px 20px rgba(0, 45, 86, 0.12);
 }
 
 .order-radio {
@@ -378,6 +461,9 @@
   height: 20px;
   border: 2px solid #9aa6b2;
   border-radius: 50%;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
 }
 
 .order-card.selected .order-radio {
@@ -389,6 +475,7 @@
   height: 11px;
   border-radius: 50%;
   background: transparent;
+  transition: background-color 160ms ease;
 }
 
 .order-card.selected .order-radio span {
@@ -429,11 +516,19 @@
   color: #002d56;
   font-size: 16px;
   font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .panel-save-button:hover {
+  transform: translateY(-1px);
   background: #002d56;
   color: #ffffff;
+  box-shadow: 0 8px 16px rgba(0, 45, 86, 0.16);
 }
 
 @media (max-width: 1180px) {
